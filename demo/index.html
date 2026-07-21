@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PHC CPD Directory — Demo (Milestone 1)</title>
+    <link rel="stylesheet" href="../assets/styles/phc-directory.css" />
+  </head>
+  <body>
+    <!-- Simulates WordPress / Thrive chrome (outside the application boundary) -->
+    <header>
+      <p>PHC Schweiz (host header — must not be modified by the app)</p>
+    </header>
+
+    <main>
+      <!-- Exact host integration contract: one mount element only -->
+      <div id="phc-cpd-directory"></div>
+    </main>
+
+    <footer>
+      <p>PHC Schweiz (host footer — must not be modified by the app)</p>
+    </footer>
+
+    <script type="module">
+      import { start } from '../src/bootstrap.js';
+      start();
+    </script>
+  </body>
+</html>

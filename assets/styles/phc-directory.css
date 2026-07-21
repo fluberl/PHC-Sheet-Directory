@@ -1,0 +1,25 @@
+/**
+ * PHC Directory styles — Version 1.0 (Milestone 1)
+ * All rules are scoped under the mount root to avoid WordPress / Thrive conflicts.
+ */
+
+#phc-cpd-directory {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: Georgia, 'Times New Roman', serif;
+  color: #1a1a1a;
+  line-height: 1.5;
+}
+
+#phc-cpd-directory *,
+#phc-cpd-directory *::before,
+#phc-cpd-directory *::after {
+  box-sizing: border-box;
+}
+
+#phc-cpd-directory .phc-directory__status {
+  margin: 0;
+  padding: 1.25rem 0;
+  font-size: 1.125rem;
+}
