@@ -1,61 +1,63 @@
 /**
- * Bootstrap — Version 1.0 (Milestone 2)
+ * Bootstrap — Version 1.0 (Milestone 3)
  * Composes the application and starts it exactly once.
- * Hosts decide when to call start().
- *
- * Milestone 2 temporarily drives a demonstration lifecycle outcome here.
- * Milestone 3 will replace this with real PUBLIC loading.
+ * Hosts decide when to call start() and supply host-specific config
+ * (for example publicSource).
+ * Orchestrates lifecycle; contains no transport logic.
  */
 
 import { getConfig } from './config/config.js';
 import { getMountRoot } from './host/mount.js';
 import { createState } from './state/state.js';
 import { report } from './errors/errors.js';
+import { fetchPublic } from './data/source.js';
 import { render } from './render/render.js';
 
 let hasStarted = false;
 
 /**
- * Temporary Milestone 2 demonstration control.
- * Change to 'loading' | 'empty' | 'error' for manual verification.
- * Remove when PUBLIC loading is introduced.
- * @type {'loading' | 'empty' | 'error'}
- */
-const MILESTONE_2_DEMO_OUTCOME = 'empty';
-
-/**
- * Apply Milestone 2 controlled demonstration outcomes (no PUBLIC data).
- * @param {'loading' | 'empty' | 'error'} outcome
+ * @param {{ mountSelector: string, publicSource?: string }} config
  * @param {ReturnType<typeof createState>} state
  */
-function applyDemoOutcome(outcome, state) {
-  if (outcome === 'empty') {
-    state.setEmpty();
+async function loadPublic(config, state) {
+  state.setLoading();
+
+  const result = await fetchPublic(config);
+
+  if (!result.ok) {
+    report(result, state);
     return;
   }
 
-  if (outcome === 'error') {
-    report(
-      { message: 'Stub failure for Milestone 2 (no PUBLIC data loaded).' },
-      state,
-    );
+  const rows = result.payload;
+
+  if (rows.length === 0) {
+    state.setEmpty(rows);
     return;
   }
 
-  // 'loading' — remain in the initial loading lifecycle
+  state.setReady({ rows });
 }
 
 /**
  * Start the directory application once.
  * Modifies only the mount-root subtree when the host contract is satisfied.
+ *
+ * @param {{ mountSelector?: string, publicSource?: string }} [hostOptions]
+ *        Host-supplied overrides. Demo / WordPress provide publicSource.
  */
-export function start() {
+export function start(hostOptions = {}) {
   if (hasStarted) {
     return;
   }
   hasStarted = true;
 
-  const config = getConfig();
+  const base = getConfig();
+  const config = Object.freeze({
+    mountSelector: hostOptions.mountSelector ?? base.mountSelector,
+    publicSource: hostOptions.publicSource,
+  });
+
   const mount = getMountRoot(config.mountSelector);
 
   if (!mount.ok) {
@@ -71,5 +73,8 @@ export function start() {
 
   state.subscribe(renderSnapshot);
   renderSnapshot(state.getSnapshot());
-  applyDemoOutcome(MILESTONE_2_DEMO_OUTCOME, state);
+
+  loadPublic(config, state).catch((failure) => {
+    report(failure, state);
+  });
 }

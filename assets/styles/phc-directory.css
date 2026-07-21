@@ -1,5 +1,5 @@
 /**
- * PHC Directory styles — Version 1.0 (Milestone 2)
+ * PHC Directory styles — Version 1.0 (Milestone 3)
  * All rules are scoped under the mount root to avoid WordPress / Thrive conflicts.
  * No assumptions about future alternating card layouts.
  */
@@ -33,6 +33,15 @@
   margin: 0;
   padding: 1.25rem 0;
   font-size: 1.125rem;
+}
+
+#phc-cpd-directory .phc-directory__status-title,
+#phc-cpd-directory .phc-directory__status-detail {
+  margin: 0;
+}
+
+#phc-cpd-directory .phc-directory__status-detail {
+  margin-top: 0.35rem;
 }
 
 #phc-cpd-directory .phc-directory__status--error {

@@ -1,11 +1,15 @@
 /**
- * Lifecycle state views — Version 1.0 (Milestone 2)
- * Builds semantic markup for loading / empty / error.
+ * Lifecycle state views — Version 1.0 (Milestone 3)
+ * Builds semantic markup for loading / empty / ready / error.
  * Does not decide layout for future result cards.
  */
 
 /**
- * @param {{ lifecycle: string, errorMessage: string | null }} snapshot
+ * @param {{
+ *   lifecycle: string,
+ *   errorMessage: string | null,
+ *   rowCount: number | null,
+ * }} snapshot
  * @returns {HTMLElement}
  */
 export function createLifecycleView(snapshot) {
@@ -26,6 +30,26 @@ export function createLifecycleView(snapshot) {
     status.className = 'phc-directory__status phc-directory__status--empty';
     status.setAttribute('role', 'status');
     status.textContent = 'No entries are available.';
+    region.appendChild(status);
+    return region;
+  }
+
+  if (snapshot.lifecycle === 'ready') {
+    const status = document.createElement('div');
+    status.className = 'phc-directory__status phc-directory__status--ready';
+    status.setAttribute('role', 'status');
+
+    const title = document.createElement('p');
+    title.className = 'phc-directory__status-title';
+    title.textContent = 'PUBLIC successfully loaded';
+
+    const count = document.createElement('p');
+    count.className = 'phc-directory__status-detail';
+    const rowCount = snapshot.rowCount == null ? 0 : snapshot.rowCount;
+    count.textContent = `Number of rows received: ${rowCount}`;
+
+    status.appendChild(title);
+    status.appendChild(count);
     region.appendChild(status);
     return region;
   }

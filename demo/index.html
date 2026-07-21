@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>PHC CPD Directory — Demo (Milestone 2)</title>
+    <title>PHC CPD Directory — Demo (Milestone 3)</title>
     <link rel="stylesheet" href="../assets/styles/phc-directory.css" />
   </head>
   <body>
@@ -23,7 +23,15 @@
 
     <script type="module">
       import { start } from '../src/bootstrap.js';
-      start();
+
+      // Host resolves the sample PUBLIC URL relative to this page.
+      // Works with: python3 -m http.server 8765 --directory .
+      const publicSource = new URL(
+        '../examples/public/sample-public.json',
+        import.meta.url,
+      ).href;
+
+      start({ publicSource });
     </script>
   </body>
 </html>

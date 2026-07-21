@@ -1,14 +1,18 @@
 /**
- * Rendering — Version 1.0 (Milestone 2)
+ * Rendering — Version 1.0 (Milestone 3)
  * Projects Application State into the mount root only.
- * Layout of future result cards is not decided here.
+ * Knows nothing about PUBLIC structure beyond the state snapshot.
  */
 
 import { createLifecycleView } from './states.js';
 
 /**
  * @param {Element} root
- * @param {{ lifecycle: string, errorMessage: string | null }} snapshot
+ * @param {{
+ *   lifecycle: string,
+ *   errorMessage: string | null,
+ *   rowCount: number | null,
+ * }} snapshot
  */
 export function render(root, snapshot) {
   root.replaceChildren();
