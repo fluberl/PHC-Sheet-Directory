@@ -1,14 +1,46 @@
 [
   {
-    "id": "REC-001",
-    "title": "Sample directory entry one"
+    "Anbietertyp": "Institution / Organisation",
+    "Name des Anbieters": "Coaching Institut Living Sense",
+    "Website des Anbieters": "https://example.org/living-sense",
+    "Logo des Anbieters": "https://example.org/logos/living-sense.png",
+    "PHC-CPD-ID": "PHC-CPD-001",
+    "Vollständiger Titel": "Coaching Practitioner CIS",
+    "Kurztitel": "Coaching Practitioner",
+    "Kurzbeschreibung": "Practitioner-Ausbildung im Coaching.",
+    "Ausführliche Beschreibung": "Vertiefte Ausbildung für Coachs.",
+    "Veranstaltungsort": "Zürich",
+    "Anrechenbare Weiterbildungsstunden (CPD)": "24",
+    "Bild der Weiterbildung": "https://example.org/images/cis.png",
+    "QR-Code (optional)": "",
+    "Primärkategorie": "Coaching",
+    "Weitere Kategorien": "Kommunikation, Stress & Resilienz",
+    "Durchführungsformat": "Präsenz, Online (live)",
+    "Terminart": "Wiederkehrend",
+    "Nächster Start": "2026-09-01",
+    "Durchführung / Zeitplan": "Module über 12 Monate",
+    "Kursseite / Anmeldung": "https://example.org/courses/cis"
   },
   {
-    "id": "REC-002",
-    "title": "Sample directory entry two"
-  },
-  {
-    "id": "REC-003",
-    "title": "Sample directory entry three"
+    "Anbietertyp": "Einzelanbieter",
+    "Name des Anbieters": "Ulf Tölle",
+    "Website des Anbieters": "https://example.org/ulf",
+    "Logo des Anbieters": "",
+    "PHC-CPD-ID": "PHC-CPD-005",
+    "Vollständiger Titel": "EasyBits™ – die eigenen Anspannungen modulieren lernen",
+    "Kurztitel": "EasyBits™",
+    "Kurzbeschreibung": "Praktisches Training zur Modulation von Anspannung.",
+    "Ausführliche Beschreibung": "Online-Live-Format mit Übungen.",
+    "Veranstaltungsort": "Online",
+    "Anrechenbare Weiterbildungsstunden (CPD)": "2,25",
+    "Bild der Weiterbildung": "https://example.org/images/easybits.png",
+    "QR-Code (optional)": "https://example.org/qr/easybits.png",
+    "Primärkategorie": "Stress & Resilienz",
+    "Weitere Kategorien": "Bewegung, Persönlichkeitsentwicklung",
+    "Durchführungsformat": "Online (live)",
+    "Terminart": "Fortlaufend",
+    "Nächster Start": "2026-08-15",
+    "Durchführung / Zeitplan": "Wöchentliche Sessions",
+    "Kursseite / Anmeldung": "https://example.org/courses/easybits"
   }
 ]

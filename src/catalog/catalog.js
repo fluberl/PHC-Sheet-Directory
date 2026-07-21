@@ -1,59 +1,94 @@
 /**
- * Catalog — Version 1.0 (Milestone 6)
- * Immutable collection of Domain Entries.
+ * Catalog — Version 1.0 (Milestone 8)
+ * Immutable collection of directory records.
  *
  * Answers only: size, all entries in source order, lookup by id.
- * No search, filter, sort, group, pagination, or rendering.
+ * Uses RecordAccessors so nested specialization shapes stay outside Catalog.
  */
 
+import { flatRecordAccessors } from '../domain/accessors.js';
+
 /**
- * @typedef {{ id: string, title: string }} DirectoryEntry
+ * @typedef {import('../domain/accessors.js').RecordAccessors} RecordAccessors
  *
  * @typedef {{
  *   readonly size: number,
- *   getAll: () => readonly DirectoryEntry[],
- *   getById: (id: string) => DirectoryEntry | null,
+ *   getAll: () => readonly unknown[],
+ *   getById: (id: string) => unknown | null,
  * }} Catalog
  */
 
 /**
- * Create an immutable Catalog from transformed Domain Entries.
+ * Create an immutable Catalog from directory records.
  *
- * @param {readonly DirectoryEntry[]} entries
+ * @param {readonly unknown[]} entries
+ * @param {RecordAccessors} [accessors]
  * @returns {Catalog}
  */
-export function createCatalog(entries) {
+export function createCatalog(entries, accessors = flatRecordAccessors) {
   if (!Array.isArray(entries)) {
     throw new Error('Catalog creation failed: expected an array of Domain Entries.');
   }
 
-  /** @type {DirectoryEntry[]} */
+  if (
+    accessors === null ||
+    typeof accessors !== 'object' ||
+    typeof accessors.getId !== 'function' ||
+    typeof accessors.getTitle !== 'function'
+  ) {
+    throw new Error('Catalog creation failed: expected record accessors.');
+  }
+
+  /** @type {unknown[]} */
   const ordered = [];
-  /** @type {Map<string, DirectoryEntry>} */
+  /** @type {Map<string, unknown>} */
   const byId = new Map();
 
   for (let index = 0; index < entries.length; index += 1) {
     const entry = entries[index];
 
-    if (
-      entry === null ||
-      typeof entry !== 'object' ||
-      typeof entry.id !== 'string' ||
-      typeof entry.title !== 'string'
-    ) {
+    if (entry === null || typeof entry !== 'object') {
       throw new Error(
         `Catalog creation failed at entry ${index + 1}: expected a Domain Entry.`,
       );
     }
 
-    if (byId.has(entry.id)) {
+    let id;
+    let title;
+
+    try {
+      id = accessors.getId(entry);
+      title = accessors.getTitle(entry);
+    } catch (failure) {
+      const detail =
+        failure instanceof Error && failure.message
+          ? failure.message
+          : 'invalid record accessors';
       throw new Error(
-        `Catalog creation failed: unexpected duplicate id "${entry.id}".`,
+        `Catalog creation failed at entry ${index + 1}: ${detail}`,
+      );
+    }
+
+    if (typeof id !== 'string' || id.trim() === '') {
+      throw new Error(
+        `Catalog creation failed at entry ${index + 1}: expected a non-empty id.`,
+      );
+    }
+
+    if (typeof title !== 'string') {
+      throw new Error(
+        `Catalog creation failed at entry ${index + 1}: expected a title string.`,
+      );
+    }
+
+    if (byId.has(id)) {
+      throw new Error(
+        `Catalog creation failed: unexpected duplicate id "${id}".`,
       );
     }
 
     ordered.push(entry);
-    byId.set(entry.id, entry);
+    byId.set(id, entry);
   }
 
   const frozenEntries = Object.freeze(ordered.slice());
@@ -69,7 +104,7 @@ export function createCatalog(entries) {
 
     /**
      * @param {string} id
-     * @returns {DirectoryEntry | null}
+     * @returns {unknown | null}
      */
     getById(id) {
       if (typeof id !== 'string') {

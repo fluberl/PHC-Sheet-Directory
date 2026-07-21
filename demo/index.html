@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>PHC CPD Directory — Demo (Milestone 7)</title>
+    <title>PHC CPD Directory — Demo (Milestone 8)</title>
     <link rel="stylesheet" href="../assets/styles/phc-directory.css" />
   </head>
   <body>
@@ -24,10 +24,9 @@
     <script type="module">
       import { start } from '../src/bootstrap.js';
 
-      // Switch sample with this one line:
-      // sample-public.json | sample-empty.json |
-      // sample-missing-title.json | sample-duplicate-id.json |
-      // sample-invalid-type.json
+      // Switch sample:
+      // sample-public.json (PHC CPD PUBLIC v1.0) | sample-empty.json
+      // Flat legacy fixtures live under examples/legacy/flat-public/
       const PUBLIC_SAMPLE = 'sample-public.json';
 
       const publicSource = new URL(

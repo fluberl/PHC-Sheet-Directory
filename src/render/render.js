@@ -1,20 +1,13 @@
 /**
- * Rendering — Version 1.0 (Milestone 7)
- * Projects Application State into the mount root only.
- * Receives only the immutable snapshot — never Catalog or SearchResult.
+ * Rendering — Version 1.0 (Milestone 8)
+ * Snapshot-only. No Catalog, SearchResult, mapper, or acquisition imports.
  */
 
 import { createLifecycleView } from './states.js';
 
 /**
  * @param {Element} root
- * @param {{
- *   lifecycle: string,
- *   errorMessage: string | null,
- *   rowCount: number | null,
- *   resultCount: number | null,
- *   searchText: string,
- * }} snapshot
+ * @param {object} snapshot
  */
 export function render(root, snapshot) {
   root.replaceChildren();

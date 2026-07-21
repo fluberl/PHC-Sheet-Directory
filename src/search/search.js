@@ -1,28 +1,27 @@
 /**
- * Search — Version 1.0 (Milestone 7)
+ * Search — Version 1.0 (Milestone 8)
  * Pure function: Catalog + criteria → immutable SearchResult.
  *
- * Does not mutate Catalog. No filtering, sorting, ranking, or fuzzy match.
- * Searches the generic title field with case-insensitive substring matching.
+ * Title text is read through RecordAccessors (default: flat entry.title).
+ * Does not import specializations or know PUBLIC column headings.
  */
 
+import { flatRecordAccessors } from '../domain/accessors.js';
 import { createSearchResult } from './result.js';
 
 /**
- * @typedef {{ id: string, title: string }} DirectoryEntry
+ * @typedef {import('../domain/accessors.js').RecordAccessors} RecordAccessors
  *
  * @typedef {{
  *   readonly size: number,
- *   getAll: () => readonly DirectoryEntry[],
- *   getById: (id: string) => DirectoryEntry | null,
+ *   getAll: () => readonly unknown[],
+ *   getById: (id: string) => unknown | null,
  * }} Catalog
  *
  * @typedef {{ text?: string | null }} SearchCriteria
  */
 
 /**
- * Normalize search text: trim; missing/null/non-string → empty string.
- *
  * @param {unknown} text
  * @returns {string}
  */
@@ -50,17 +49,25 @@ function assertCatalog(catalog) {
 }
 
 /**
- * Search a Catalog and return an immutable SearchResult.
- *
- * Empty / whitespace-only text → all Catalog entries (source order).
- * Otherwise → case-insensitive substring match on title.
- *
  * @param {Catalog} catalog
  * @param {SearchCriteria} [criteria]
+ * @param {RecordAccessors} [accessors]
  * @returns {import('./result.js').SearchResult}
  */
-export function searchCatalog(catalog, criteria = {}) {
+export function searchCatalog(
+  catalog,
+  criteria = {},
+  accessors = flatRecordAccessors,
+) {
   assertCatalog(catalog);
+
+  if (
+    accessors === null ||
+    typeof accessors !== 'object' ||
+    typeof accessors.getTitle !== 'function'
+  ) {
+    throw new Error('searchCatalog failed: expected record accessors.');
+  }
 
   const source = catalog.getAll();
 
@@ -75,11 +82,12 @@ export function searchCatalog(catalog, criteria = {}) {
   }
 
   const needle = text.toLowerCase();
-  /** @type {DirectoryEntry[]} */
+  /** @type {unknown[]} */
   const matched = [];
 
   for (const entry of source) {
-    if (typeof entry?.title === 'string' && entry.title.toLowerCase().includes(needle)) {
+    const title = accessors.getTitle(entry);
+    if (typeof title === 'string' && title.toLowerCase().includes(needle)) {
       matched.push(entry);
     }
   }

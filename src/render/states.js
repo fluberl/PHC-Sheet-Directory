@@ -1,7 +1,6 @@
 /**
- * Lifecycle / diagnostic views — Version 1.0 (Milestone 7)
- * Loading / empty / ready / error plus diagnostic search UI.
- * No card rendering.
+ * Lifecycle / diagnostic views — Version 1.0 (Milestone 8)
+ * Shows search + id/title result projection. No course cards.
  */
 
 /**
@@ -11,6 +10,7 @@
  *   rowCount: number | null,
  *   resultCount: number | null,
  *   searchText: string,
+ *   results?: readonly { id: string, title: string }[],
  * }} snapshot
  * @returns {HTMLElement}
  */
@@ -53,6 +53,7 @@ export function createLifecycleView(snapshot) {
 
     status.appendChild(createSearchControls(snapshot));
     status.appendChild(createDiagnostics(snapshot));
+    status.appendChild(createResultList(snapshot));
     region.appendChild(status);
     return region;
   }
@@ -122,4 +123,37 @@ function createDiagnostics(snapshot) {
   diagnostics.appendChild(results);
   diagnostics.appendChild(text);
   return diagnostics;
+}
+
+/**
+ * Snapshot projection list — id/title only. Not visual course cards.
+ *
+ * @param {{ results?: readonly { id: string, title: string }[] }} snapshot
+ * @returns {HTMLElement}
+ */
+function createResultList(snapshot) {
+  const list = document.createElement('ul');
+  list.className = 'phc-directory__result-list';
+
+  const results = Array.isArray(snapshot.results) ? snapshot.results : [];
+
+  results.forEach((item) => {
+    const li = document.createElement('li');
+    li.className = 'phc-directory__result-item';
+
+    const id = document.createElement('span');
+    id.className = 'phc-directory__result-id';
+    id.textContent = item.id;
+
+    const title = document.createElement('span');
+    title.className = 'phc-directory__result-title';
+    title.textContent = item.title;
+
+    li.appendChild(id);
+    li.appendChild(document.createTextNode(' — '));
+    li.appendChild(title);
+    list.appendChild(li);
+  });
+
+  return list;
 }

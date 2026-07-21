@@ -1,28 +1,20 @@
 /**
- * SearchResult — Version 1.0 (Milestone 7)
- * Immutable derived ordered set of Directory Entries from a search.
+ * SearchResult — Version 1.0 (Milestone 8)
+ * Immutable derived ordered set of directory records from a search.
  *
- * Catalog remains the full durable dataset.
- * SearchResult is the current match set only.
- *
- * Interface is intentionally minimal: size + getAll().
- * ID lookup stays on Catalog until a concrete runtime need appears.
+ * Does not assume a flat { id, title } shape — Catalog/Search accessors
+ * interpret specialization records.
  */
 
 /**
- * @typedef {{ id: string, title: string }} DirectoryEntry
- *
  * @typedef {{
  *   readonly size: number,
- *   getAll: () => readonly DirectoryEntry[],
+ *   getAll: () => readonly unknown[],
  * }} SearchResult
  */
 
 /**
- * Create an immutable SearchResult from matching Domain Entries.
- * Preserves the order of the provided entries (Catalog source order).
- *
- * @param {readonly DirectoryEntry[]} entries
+ * @param {readonly unknown[]} entries
  * @returns {SearchResult}
  */
 export function createSearchResult(entries) {
@@ -30,18 +22,13 @@ export function createSearchResult(entries) {
     throw new Error('SearchResult creation failed: expected an array of Domain Entries.');
   }
 
-  /** @type {DirectoryEntry[]} */
+  /** @type {unknown[]} */
   const ordered = [];
 
   for (let index = 0; index < entries.length; index += 1) {
     const entry = entries[index];
 
-    if (
-      entry === null ||
-      typeof entry !== 'object' ||
-      typeof entry.id !== 'string' ||
-      typeof entry.title !== 'string'
-    ) {
+    if (entry === null || typeof entry !== 'object') {
       throw new Error(
         `SearchResult creation failed at entry ${index + 1}: expected a Domain Entry.`,
       );

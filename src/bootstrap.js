@@ -1,8 +1,6 @@
 /**
- * Bootstrap — Version 1.0 (Milestone 7)
- * Composes the application and starts it exactly once.
- * Orchestrates lifecycle; contains no transport, validation, transform,
- * Catalog, or Search implementation bodies.
+ * Bootstrap — Version 1.0 (Milestone 8)
+ * Orchestrates PUBLIC acquisition → CPD mapping → Catalog → Search → State.
  */
 
 import { getConfig } from './config/config.js';
@@ -10,16 +8,16 @@ import { getMountRoot } from './host/mount.js';
 import { createState } from './state/state.js';
 import { report } from './errors/errors.js';
 import { fetchPublic } from './data/source.js';
-import { getDirectorySchema } from './schema/contract.js';
-import {
-  validatePublicRows,
-  summarizeValidationErrors,
-} from './schema/validate.js';
-import { transformRowsToEntries } from './domain/transform.js';
+import { validateTransportRows } from './schema/transport.js';
+import { summarizeValidationErrors } from './schema/validate.js';
 import { createCatalog } from './catalog/catalog.js';
 import { searchCatalog } from './search/search.js';
 import { bind } from './interaction/interaction.js';
 import { render } from './render/render.js';
+import {
+  cpdRecordAccessors,
+  mapPublicRowsToCpdCourses,
+} from './specializations/cpd/index.js';
 
 let hasStarted = false;
 
@@ -38,31 +36,30 @@ async function loadPublic(config, state) {
   }
 
   const rows = result.payload;
-  const schema = getDirectorySchema();
-  const validation = validatePublicRows(rows, schema);
+  const transport = validateTransportRows(rows);
 
-  if (!validation.valid) {
+  if (!transport.valid) {
     state.setSchemaError({
-      rows,
-      validationResult: validation,
-      message: summarizeValidationErrors(validation),
+      rows: Array.isArray(rows) ? rows : [],
+      validationResult: transport,
+      message: summarizeValidationErrors(transport),
     });
     return;
   }
 
-  let entries;
+  let courses;
 
   try {
-    entries = transformRowsToEntries(rows);
+    courses = mapPublicRowsToCpdCourses(rows);
   } catch (failure) {
     const message =
       failure instanceof Error && failure.message
         ? failure.message
-        : 'Directory transformation failed.';
+        : 'PUBLIC mapping failed.';
 
     state.setTransformError({
       rows,
-      validationResult: validation,
+      validationResult: transport,
       message,
     });
     return;
@@ -71,7 +68,7 @@ async function loadPublic(config, state) {
   let catalog;
 
   try {
-    catalog = createCatalog(entries);
+    catalog = createCatalog(courses, cpdRecordAccessors);
   } catch (failure) {
     const message =
       failure instanceof Error && failure.message
@@ -79,42 +76,43 @@ async function loadPublic(config, state) {
         : 'Catalog creation failed.';
 
     state.setCatalogError({
-      rows,
-      validationResult: validation,
-      entries,
+      entries: courses,
+      validationResult: transport,
       message,
     });
     return;
   }
 
   const searchText = '';
-  const searchResult = searchCatalog(catalog, { text: searchText });
+  const searchResult = searchCatalog(
+    catalog,
+    { text: searchText },
+    cpdRecordAccessors,
+  );
 
   if (catalog.size === 0) {
     state.setEmpty({
-      rows,
-      validationResult: validation,
-      entries,
+      validationResult: transport,
+      entries: courses,
       catalog,
       searchResult,
       searchText,
+      recordAccessors: cpdRecordAccessors,
     });
     return;
   }
 
   state.setReady({
-    rows,
-    validationResult: validation,
-    entries,
+    validationResult: transport,
+    entries: courses,
     catalog,
     searchResult,
     searchText,
+    recordAccessors: cpdRecordAccessors,
   });
 }
 
 /**
- * Start the directory application once.
- *
  * @param {{ mountSelector?: string, publicSource?: string }} [hostOptions]
  */
 export function start(hostOptions = {}) {

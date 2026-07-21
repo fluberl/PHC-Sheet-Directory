@@ -1,19 +1,12 @@
 /**
- * Application State — Version 1.0 (Milestone 7)
- * Owns mutable session lifecycle.
- * Retains Catalog (source), normalized search text, and SearchResult (derived).
- *
- * ---------------------------------------------------------------------------
- * Internal interfaces (not for Rendering)
- * ---------------------------------------------------------------------------
- * - getSnapshot()
- *     { lifecycle, errorMessage, rowCount, resultCount, searchText }
- * - getCatalog()
- * - getSearchResult()
- * - setSearchText(rawText) — re-derives SearchResult from Catalog
- * ---------------------------------------------------------------------------
+ * Application State — Version 1.0 (Milestone 8)
+ * Retains Catalog, SearchResult, record accessors, and rendering snapshot.
+ * Does not retain raw PUBLIC rows on successful load.
  */
 
+import {
+  projectIdTitleResults,
+} from '../domain/accessors.js';
 import {
   normalizeSearchText,
   searchCatalog,
@@ -22,11 +15,16 @@ import {
 /**
  * @typedef {'loading' | 'empty' | 'ready' | 'error'} Lifecycle
  * @typedef {{
+ *   id: string,
+ *   title: string,
+ * }} ResultProjection
+ * @typedef {{
  *   lifecycle: Lifecycle,
  *   errorMessage: string | null,
  *   rowCount: number | null,
  *   resultCount: number | null,
  *   searchText: string,
+ *   results: readonly ResultProjection[],
  * }} StateSnapshot
  *
  * @typedef {{
@@ -39,18 +37,7 @@ import {
  *   }[],
  * }} ValidationResult
  *
- * @typedef {{ id: string, title: string }} DirectoryEntry
- *
- * @typedef {{
- *   readonly size: number,
- *   getAll: () => readonly DirectoryEntry[],
- *   getById: (id: string) => DirectoryEntry | null,
- * }} Catalog
- *
- * @typedef {{
- *   readonly size: number,
- *   getAll: () => readonly DirectoryEntry[],
- * }} SearchResult
+ * @typedef {import('../domain/accessors.js').RecordAccessors} RecordAccessors
  */
 
 /**
@@ -74,67 +61,35 @@ function retainValidationResult(result) {
 }
 
 /**
- * @param {readonly DirectoryEntry[]} nextEntries
- * @returns {readonly DirectoryEntry[]}
+ * @param {readonly unknown[]} nextEntries
+ * @returns {readonly unknown[]}
  */
 function retainEntries(nextEntries) {
   return Object.freeze(nextEntries.slice());
 }
 
+function emptySnapshotExtras() {
+  return {
+    resultCount: null,
+    searchText: '',
+    results: Object.freeze([]),
+  };
+}
+
 /**
- * @returns {{
- *   getSnapshot: () => StateSnapshot,
- *   getAcquiredRows: () => readonly unknown[] | null,
- *   getValidationResult: () => ValidationResult | null,
- *   getEntries: () => readonly DirectoryEntry[] | null,
- *   getCatalog: () => Catalog | null,
- *   getSearchResult: () => SearchResult | null,
- *   subscribe: (listener: (snapshot: StateSnapshot) => void) => () => void,
- *   setLoading: () => void,
- *   setEmpty: (details: {
- *     rows?: unknown[],
- *     validationResult?: ValidationResult,
- *     entries?: DirectoryEntry[],
- *     catalog: Catalog,
- *     searchResult: SearchResult,
- *     searchText?: string,
- *   }) => void,
- *   setReady: (details: {
- *     rows: unknown[],
- *     validationResult: ValidationResult,
- *     entries: DirectoryEntry[],
- *     catalog: Catalog,
- *     searchResult: SearchResult,
- *     searchText?: string,
- *   }) => void,
- *   setSearchText: (rawText: string) => void,
- *   setSchemaError: (details: {
- *     rows: unknown[],
- *     validationResult: ValidationResult,
- *     message: string,
- *   }) => void,
- *   setTransformError: (details: {
- *     rows: unknown[],
- *     validationResult: ValidationResult,
- *     message: string,
- *   }) => void,
- *   setCatalogError: (details: {
- *     rows: unknown[],
- *     validationResult: ValidationResult,
- *     entries: DirectoryEntry[],
- *     message: string,
- *   }) => void,
- *   setError: (message: string) => void,
- * }}
+ * @returns {ReturnType<typeof createStateApi>}
  */
 export function createState() {
+  return createStateApi();
+}
+
+function createStateApi() {
   /** @type {StateSnapshot} */
   let snapshot = Object.freeze({
     lifecycle: 'loading',
     errorMessage: null,
     rowCount: null,
-    resultCount: null,
-    searchText: '',
+    ...emptySnapshotExtras(),
   });
 
   /** @type {readonly unknown[] | null} */
@@ -143,14 +98,17 @@ export function createState() {
   /** @type {ValidationResult | null} */
   let validationResult = null;
 
-  /** @type {readonly DirectoryEntry[] | null} */
+  /** @type {readonly unknown[] | null} */
   let entries = null;
 
-  /** @type {Catalog | null} */
+  /** @type {import('../catalog/catalog.js').Catalog | null} */
   let catalog = null;
 
-  /** @type {SearchResult | null} */
+  /** @type {import('../search/result.js').SearchResult | null} */
   let searchResult = null;
+
+  /** @type {RecordAccessors | null} */
+  let recordAccessors = null;
 
   /** @type {Set<(snapshot: StateSnapshot) => void>} */
   const listeners = new Set();
@@ -168,6 +126,15 @@ export function createState() {
    */
   function retainRows(rows) {
     return Object.freeze(rows.slice());
+  }
+
+  /**
+   * @param {import('../search/result.js').SearchResult} nextSearchResult
+   * @param {RecordAccessors} accessors
+   * @returns {readonly ResultProjection[]}
+   */
+  function buildResults(nextSearchResult, accessors) {
+    return projectIdTitleResults(nextSearchResult, accessors);
   }
 
   return {
@@ -195,6 +162,10 @@ export function createState() {
       return searchResult;
     },
 
+    getRecordAccessors() {
+      return recordAccessors;
+    },
+
     subscribe(listener) {
       listeners.add(listener);
       return () => {
@@ -208,76 +179,81 @@ export function createState() {
       entries = null;
       catalog = null;
       searchResult = null;
+      recordAccessors = null;
       snapshot = Object.freeze({
         lifecycle: 'loading',
         errorMessage: null,
         rowCount: null,
-        resultCount: null,
-        searchText: '',
+        ...emptySnapshotExtras(),
       });
       emit();
     },
 
     setEmpty(details) {
-      const rows = details.rows ?? [];
-      const nextValidation = details.validationResult ?? {
-        valid: true,
-        errors: [],
-      };
-      const nextEntries = details.entries ?? [];
       const text = normalizeSearchText(details.searchText ?? '');
+      const accessors = details.recordAccessors;
+      const results = buildResults(details.searchResult, accessors);
 
-      acquiredRows = retainRows(rows);
-      validationResult = retainValidationResult(nextValidation);
-      entries = retainEntries(nextEntries);
+      acquiredRows = null;
+      validationResult = retainValidationResult(
+        details.validationResult ?? { valid: true, errors: [] },
+      );
+      entries = retainEntries(details.entries ?? []);
       catalog = details.catalog;
       searchResult = details.searchResult;
+      recordAccessors = accessors;
       snapshot = Object.freeze({
         lifecycle: 'empty',
         errorMessage: null,
         rowCount: details.catalog.size,
         resultCount: details.searchResult.size,
         searchText: text,
+        results,
       });
       emit();
     },
 
     setReady(details) {
       const text = normalizeSearchText(details.searchText ?? '');
+      const accessors = details.recordAccessors;
+      const results = buildResults(details.searchResult, accessors);
 
-      acquiredRows = retainRows(details.rows);
+      acquiredRows = null;
       validationResult = retainValidationResult(details.validationResult);
       entries = retainEntries(details.entries);
       catalog = details.catalog;
       searchResult = details.searchResult;
+      recordAccessors = accessors;
       snapshot = Object.freeze({
         lifecycle: 'ready',
         errorMessage: null,
         rowCount: details.catalog.size,
         resultCount: details.searchResult.size,
         searchText: text,
+        results,
       });
       emit();
     },
 
-    /**
-     * Update search criterion and re-derive SearchResult from Catalog.
-     * Does not change lifecycle when Catalog is non-empty (zero matches ≠ error).
-     * @param {string} rawText
-     */
     setSearchText(rawText) {
-      if (!catalog || (snapshot.lifecycle !== 'ready' && snapshot.lifecycle !== 'empty')) {
+      if (
+        !catalog ||
+        !recordAccessors ||
+        (snapshot.lifecycle !== 'ready' && snapshot.lifecycle !== 'empty')
+      ) {
         return;
       }
 
       const text = normalizeSearchText(rawText);
-      searchResult = searchCatalog(catalog, { text });
+      searchResult = searchCatalog(catalog, { text }, recordAccessors);
+      const results = buildResults(searchResult, recordAccessors);
       snapshot = Object.freeze({
         lifecycle: snapshot.lifecycle,
         errorMessage: null,
         rowCount: catalog.size,
         resultCount: searchResult.size,
         searchText: text,
+        results,
       });
       emit();
     },
@@ -288,44 +264,48 @@ export function createState() {
       entries = null;
       catalog = null;
       searchResult = null;
+      recordAccessors = null;
       snapshot = Object.freeze({
         lifecycle: 'error',
         errorMessage: details.message,
         rowCount: null,
-        resultCount: null,
-        searchText: '',
+        ...emptySnapshotExtras(),
       });
       emit();
     },
 
     setTransformError(details) {
-      acquiredRows = retainRows(details.rows);
-      validationResult = retainValidationResult(details.validationResult);
+      acquiredRows = retainRows(details.rows ?? []);
+      validationResult = details.validationResult
+        ? retainValidationResult(details.validationResult)
+        : null;
       entries = null;
       catalog = null;
       searchResult = null;
+      recordAccessors = null;
       snapshot = Object.freeze({
         lifecycle: 'error',
         errorMessage: details.message,
         rowCount: null,
-        resultCount: null,
-        searchText: '',
+        ...emptySnapshotExtras(),
       });
       emit();
     },
 
     setCatalogError(details) {
-      acquiredRows = retainRows(details.rows);
-      validationResult = retainValidationResult(details.validationResult);
+      acquiredRows = null;
+      validationResult = details.validationResult
+        ? retainValidationResult(details.validationResult)
+        : null;
       entries = retainEntries(details.entries);
       catalog = null;
       searchResult = null;
+      recordAccessors = null;
       snapshot = Object.freeze({
         lifecycle: 'error',
         errorMessage: details.message,
         rowCount: null,
-        resultCount: null,
-        searchText: '',
+        ...emptySnapshotExtras(),
       });
       emit();
     },
@@ -336,12 +316,12 @@ export function createState() {
       entries = null;
       catalog = null;
       searchResult = null;
+      recordAccessors = null;
       snapshot = Object.freeze({
         lifecycle: 'error',
         errorMessage: message,
         rowCount: null,
-        resultCount: null,
-        searchText: '',
+        ...emptySnapshotExtras(),
       });
       emit();
     },

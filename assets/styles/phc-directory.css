@@ -74,3 +74,17 @@
 #phc-cpd-directory .phc-directory__diagnostics {
   margin-top: 0.75rem;
 }
+
+#phc-cpd-directory .phc-directory__result-list {
+  margin: 1rem 0 0;
+  padding-left: 1.25rem;
+}
+
+#phc-cpd-directory .phc-directory__result-item {
+  margin: 0.35rem 0;
+}
+
+#phc-cpd-directory .phc-directory__result-id {
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 0.95em;
+}
