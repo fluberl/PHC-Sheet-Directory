@@ -1,7 +1,7 @@
 /**
- * Lifecycle views — Version 1.0 (Milestone 10)
- * Generic shell for lifecycle, discovery controls, and optional results.
- * Does not import CPD specialization. Copy and category options are injectable.
+ * Lifecycle views — Version 1.0 (Milestone 11)
+ * Generic shell for lifecycle, discovery controls, view mode, and optional results.
+ * Does not import CPD specialization. Copy, category options, and view options are injectable.
  */
 
 /**
@@ -11,6 +11,7 @@
  *   searchLabel: string,
  *   categoryLabel: string,
  *   allCategoriesLabel: string,
+ *   viewLabel: string,
  *   resultStatusNone: string,
  *   resultStatusOne: string,
  *   resultStatusMany: (count: number) => string,
@@ -24,18 +25,25 @@
  * }} CategoryOption
  *
  * @typedef {{
+ *   id: string,
+ *   label: string,
+ * }} ViewModeOption
+ *
+ * @typedef {{
  *   lifecycle: string,
  *   errorMessage: string | null,
  *   rowCount: number | null,
  *   resultCount: number | null,
  *   searchText: string,
  *   categoryId?: string,
+ *   viewMode?: string,
  *   results?: readonly unknown[],
  * }} LifecycleSnapshot
  *
  * @typedef {{
  *   copy?: Partial<DirectoryCopy>,
  *   categoryOptions?: readonly CategoryOption[],
+ *   viewModeOptions?: readonly ViewModeOption[],
  *   renderResults?: (snapshot: LifecycleSnapshot) => HTMLElement | null,
  * }} LifecycleViewOptions
  */
@@ -47,6 +55,7 @@ export const defaultDirectoryCopy = Object.freeze({
   searchLabel: 'Search',
   categoryLabel: 'Category',
   allCategoriesLabel: 'All categories',
+  viewLabel: 'View',
   resultStatusNone: 'No matching results',
   resultStatusOne: '1 result',
   resultStatusMany(count) {
@@ -105,7 +114,12 @@ export function createLifecycleView(snapshot, options = {}) {
     status.className = 'phc-directory__status phc-directory__status--ready';
 
     status.appendChild(
-      createDiscoveryControls(snapshot, copy, options.categoryOptions ?? []),
+      createDiscoveryControls(
+        snapshot,
+        copy,
+        options.categoryOptions ?? [],
+        options.viewModeOptions ?? [],
+      ),
     );
     status.appendChild(createResultStatus(snapshot, copy));
 
@@ -139,9 +153,15 @@ export function createLifecycleView(snapshot, options = {}) {
  * @param {LifecycleSnapshot} snapshot
  * @param {DirectoryCopy} copy
  * @param {readonly CategoryOption[]} categoryOptions
+ * @param {readonly ViewModeOption[]} viewModeOptions
  * @returns {HTMLElement}
  */
-function createDiscoveryControls(snapshot, copy, categoryOptions) {
+function createDiscoveryControls(
+  snapshot,
+  copy,
+  categoryOptions,
+  viewModeOptions,
+) {
   const controls = document.createElement('div');
   controls.className = 'phc-directory__discovery';
 
@@ -205,6 +225,43 @@ function createDiscoveryControls(snapshot, copy, categoryOptions) {
     category.appendChild(categoryLabel);
     category.appendChild(select);
     controls.appendChild(category);
+  }
+
+  if (viewModeOptions.length > 0) {
+    const view = document.createElement('div');
+    view.className = 'phc-directory__view';
+
+    const viewLabel = document.createElement('label');
+    viewLabel.className = 'phc-directory__view-label';
+    viewLabel.setAttribute('for', 'phc-directory-view');
+    viewLabel.textContent = copy.viewLabel;
+
+    const select = document.createElement('select');
+    select.id = 'phc-directory-view';
+    select.className = 'phc-directory__view-select';
+    select.setAttribute('data-phc-view', '');
+    select.setAttribute('aria-controls', 'phc-directory-results-heading');
+
+    const selected = snapshot.viewMode ?? '';
+    let matched = false;
+    viewModeOptions.forEach((option) => {
+      const node = document.createElement('option');
+      node.value = option.id;
+      node.textContent = option.label;
+      if (option.id === selected) {
+        node.selected = true;
+        matched = true;
+      }
+      select.appendChild(node);
+    });
+
+    if (!matched && select.options.length > 0) {
+      select.options[0].selected = true;
+    }
+
+    view.appendChild(viewLabel);
+    view.appendChild(select);
+    controls.appendChild(view);
   }
 
   return controls;

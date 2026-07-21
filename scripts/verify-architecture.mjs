@@ -1,5 +1,5 @@
 /**
- * Architecture verification — Milestone 10
+ * Architecture verification — Milestone 11
  * Structural checks (imports/exports/APIs), not comment sniffing.
  */
 
@@ -254,8 +254,40 @@ assert(
   'Discovery category control expected in lifecycle shell',
 );
 assert(
+  /data-phc-view/.test(statesSrc),
+  'View mode control expected in lifecycle shell',
+);
+assert(
+  !/Calendar Cards|Chronological List|catalogue/.test(statesSrc),
+  'Generic lifecycle shell must not hard-code CPD view labels',
+);
+assert(
   !/filter-sidebar|accordion/.test(statesSrc),
   'No complex filter chrome in generic lifecycle shell',
+);
+
+const viewsSrc = read('src/specializations/cpd/render-views.js');
+assert(
+  /createCpdCourseCardList/.test(viewsSrc),
+  'View selector must reuse editorial card list',
+);
+assert(
+  /createCpdChronologicalList/.test(viewsSrc),
+  'View selector must include chronological list',
+);
+assert(
+  !/map-public-row|PUBLIC_COLUMNS|fetchPublic/.test(viewsSrc),
+  'View selector must stay independent of datasource',
+);
+
+const listSrc = read('src/specializations/cpd/render-list.js');
+assert(
+  !/map-public-row|PUBLIC_COLUMNS|Anbietertyp|Vollständiger Titel/.test(listSrc),
+  'Chronological list must not read PUBLIC headings or mapper',
+);
+assert(
+  !/innerHTML|insertAdjacentHTML/.test(listSrc),
+  'Chronological list must not use unsafe HTML insertion',
 );
 
 const cssSrc = read('assets/styles/phc-directory.css');
@@ -270,6 +302,14 @@ assert(
 assert(
   !/#phc-cpd-directory[\s\S]*\border\s*:/.test(cssSrc),
   'Card media alternation must not use CSS order',
+);
+assert(
+  cssSrc.includes('phc-directory__view-select'),
+  'Styles must cover the view selector',
+);
+assert(
+  cssSrc.includes('phc-directory__schedule'),
+  'Styles must cover the chronological schedule',
 );
 
 console.log('Architecture verification passed.');

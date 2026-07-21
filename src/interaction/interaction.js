@@ -1,5 +1,5 @@
 /**
- * Interaction — Version 1.0 (Milestone 10)
+ * Interaction — Version 1.0 (Milestone 11)
  * Translates user intent inside the mount root into state commands.
  */
 
@@ -8,6 +8,7 @@
  * @param {{
  *   onSearchInput: (value: string) => void,
  *   onCategoryChange?: (value: string) => void,
+ *   onViewModeChange?: (value: string) => void,
  * }} handlers
  * @returns {() => void} unbind
  */
@@ -37,12 +38,17 @@ export function bind(root, handlers) {
       return;
     }
 
-    if (!target.matches('[data-phc-category]')) {
+    if (target.matches('[data-phc-category]')) {
+      if (typeof handlers.onCategoryChange === 'function') {
+        handlers.onCategoryChange(target.value);
+      }
       return;
     }
 
-    if (typeof handlers.onCategoryChange === 'function') {
-      handlers.onCategoryChange(target.value);
+    if (target.matches('[data-phc-view]')) {
+      if (typeof handlers.onViewModeChange === 'function') {
+        handlers.onViewModeChange(target.value);
+      }
     }
   }
 

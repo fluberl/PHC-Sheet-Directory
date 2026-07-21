@@ -1,6 +1,6 @@
 # Milestone 10 — Discovery
 
-**Status:** Implemented (pending commit)
+**Status:** Completed
 **Date:** 22 July 2026
 
 ## Why
@@ -158,4 +158,4 @@ Pending visual and architectural checkpoint review.
 
 ## Commit status
 
-Not committed. Not pushed.
+Committed and pushed with Milestone 10.

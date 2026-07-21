@@ -12,10 +12,10 @@ Milestone documents live under [`docs/milestones/`](./).
 
 ## Current Stage
 
-**Milestone 10 — Discovery** *(implemented, pending commit)*
+**Milestone 11 — Multiple Display Modes** *(implemented, pending commit)*
 
-Taxonomy-driven discovery through multi-field search and primary-category
-filtering, while preserving the generic directory architecture.
+Three presentation modes over the same filtered CPD dataset, with presentation
+kept independent of the PUBLIC datasource ahead of live Sheets integration.
 
 ---
 
@@ -32,7 +32,8 @@ filtering, while preserving the generic directory architecture.
 | M7 | Completed | Generic Search | — |
 | M8 | Completed | CPD domain specialization while preserving the generic engine | [M8-cpd-integration.md](./M8-cpd-integration.md) |
 | M9 | Completed | Editorial CPD course presentation | [M9-cpd-course-card-presentation.md](./M9-cpd-course-card-presentation.md) |
-| M10 | Implemented (pending commit) | Discovery through taxonomy, search and category filtering | [M10-discovery.md](./M10-discovery.md) |
+| M10 | Completed | Discovery through taxonomy, search and category filtering | [M10-discovery.md](./M10-discovery.md) |
+| M11 | Implemented (pending commit) | Multiple display modes over one filtered dataset | [M11-multiple-display-modes.md](./M11-multiple-display-modes.md) |
 
 ---
 

@@ -1,7 +1,7 @@
 /**
- * Rendering — Version 1.0 (Milestone 10)
+ * Rendering — Version 1.0 (Milestone 11)
  * Snapshot-only. No Catalog, SearchResult, mapper, or CPD imports.
- * Preserves search and category control focus across remounts.
+ * Preserves search, category, and view control focus across remounts.
  */
 
 import { createLifecycleView } from './states.js';
@@ -26,7 +26,7 @@ function matchesSelector(node, selector) {
 /**
  * @param {Element} root
  * @returns {{
- *   kind: 'search' | 'category' | null,
+ *   kind: 'search' | 'category' | 'view' | null,
  *   selectionStart: number | null,
  *   selectionEnd: number | null,
  *   value: string | null,
@@ -73,6 +73,16 @@ function captureControlFocus(root) {
     };
   }
 
+  if (matchesSelector(active, '[data-phc-view]')) {
+    const select = /** @type {{ value?: string }} */ (active);
+    return {
+      kind: 'view',
+      selectionStart: null,
+      selectionEnd: null,
+      value: typeof select.value === 'string' ? select.value : null,
+    };
+  }
+
   return {
     kind: null,
     selectionStart: null,
@@ -84,7 +94,7 @@ function captureControlFocus(root) {
 /**
  * @param {Element} root
  * @param {{
- *   kind: 'search' | 'category' | null,
+ *   kind: 'search' | 'category' | 'view' | null,
  *   selectionStart: number | null,
  *   selectionEnd: number | null,
  *   value: string | null,
@@ -96,7 +106,11 @@ function restoreControlFocus(root, focus) {
   }
 
   const selector =
-    focus.kind === 'search' ? '[data-phc-search]' : '[data-phc-category]';
+    focus.kind === 'search'
+      ? '[data-phc-search]'
+      : focus.kind === 'category'
+        ? '[data-phc-category]'
+        : '[data-phc-view]';
   const control = root.querySelector(selector);
   if (!matchesSelector(control, selector)) {
     return;
@@ -131,6 +145,7 @@ function restoreControlFocus(root, focus) {
  * @param {{
  *   copy?: object,
  *   categoryOptions?: readonly { id: string, label: string }[],
+ *   viewModeOptions?: readonly { id: string, label: string }[],
  *   renderResults?: (snapshot: object) => HTMLElement | null,
  * }} [options]
  */

@@ -1,5 +1,5 @@
 /**
- * CPD directory UI copy — Milestone 10
+ * CPD directory UI copy — Milestone 11
  * Specialization-owned strings for the generic lifecycle shell.
  */
 
@@ -9,6 +9,7 @@ export const cpdDirectoryCopy = Object.freeze({
   searchLabel: 'Search courses',
   categoryLabel: 'Category',
   allCategoriesLabel: 'All categories',
+  viewLabel: 'View',
   resultStatusNone: 'No matching courses',
   resultStatusOne: '1 course',
   /**

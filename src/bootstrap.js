@@ -1,6 +1,6 @@
 /**
- * Bootstrap — Version 1.0 (Milestone 10)
- * Orchestrates PUBLIC → CPD domain → Catalog → discovery → card projection.
+ * Bootstrap — Version 1.0 (Milestone 11)
+ * Orchestrates PUBLIC → CPD domain → Catalog → discovery → view rendering.
  */
 
 import { getConfig } from './config/config.js';
@@ -15,17 +15,24 @@ import { searchCatalog } from './search/search.js';
 import { bind } from './interaction/interaction.js';
 import { render } from './render/render.js';
 import {
+  CPD_VIEW_MODE_OPTIONS,
+  DEFAULT_CPD_VIEW_MODE,
   cpdRecordAccessors,
+  createCpdResultsView,
   listPrimaryCategories,
   mapPublicRowsToCpdCourses,
+  normalizeViewMode,
   projectCpdSearchResultToCards,
 } from './specializations/cpd/index.js';
 import { cpdDirectoryCopy } from './specializations/cpd/copy.js';
-import { createCpdCourseCardList } from './specializations/cpd/render-cards.js';
 
 let hasStarted = false;
 
 const categoryOptions = listPrimaryCategories().map((item) =>
+  Object.freeze({ id: item.id, label: item.label }),
+);
+
+const viewModeOptions = CPD_VIEW_MODE_OPTIONS.map((item) =>
   Object.freeze({ id: item.id, label: item.label }),
 );
 
@@ -93,6 +100,7 @@ async function loadPublic(config, state) {
 
   const searchText = '';
   const categoryId = '';
+  const viewMode = DEFAULT_CPD_VIEW_MODE;
   const searchResult = searchCatalog(
     catalog,
     { text: searchText, categoryId },
@@ -110,6 +118,7 @@ async function loadPublic(config, state) {
       searchResult,
       searchText,
       categoryId,
+      viewMode,
       recordAccessors: cpdRecordAccessors,
       projectResults,
     });
@@ -123,6 +132,7 @@ async function loadPublic(config, state) {
     searchResult,
     searchText,
     categoryId,
+    viewMode,
     recordAccessors: cpdRecordAccessors,
     projectResults,
   });
@@ -156,12 +166,14 @@ export function start(hostOptions = {}) {
     render(mount.root, snapshot, {
       copy: cpdDirectoryCopy,
       categoryOptions,
+      viewModeOptions,
       renderResults(current) {
         const cards = Array.isArray(current.results) ? current.results : [];
-        return createCpdCourseCardList(
+        return createCpdResultsView(
           /** @type {import('./specializations/cpd/presentation.js').CpdCourseCardModel[]} */ (
             cards
           ),
+          current.viewMode,
         );
       },
     });
@@ -176,6 +188,9 @@ export function start(hostOptions = {}) {
     },
     onCategoryChange(value) {
       state.setCategoryId(value);
+    },
+    onViewModeChange(value) {
+      state.setViewMode(normalizeViewMode(value));
     },
   });
 

@@ -1,5 +1,5 @@
 /**
- * PHC Directory styles — Version 1.0 (Milestone 9)
+ * PHC Directory styles — Version 1.0 (Milestone 11)
  * All rules are scoped under the mount root to avoid WordPress / Thrive conflicts.
  */
 
@@ -46,27 +46,30 @@
 
 #phc-cpd-directory .phc-directory__discovery {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 0.9fr);
   gap: 0.85rem 1.25rem;
   margin: 0 0 1rem;
   align-items: end;
 }
 
 #phc-cpd-directory .phc-directory__search,
-#phc-cpd-directory .phc-directory__category {
+#phc-cpd-directory .phc-directory__category,
+#phc-cpd-directory .phc-directory__view {
   margin: 0;
   min-width: 0;
 }
 
 #phc-cpd-directory .phc-directory__search-label,
-#phc-cpd-directory .phc-directory__category-label {
+#phc-cpd-directory .phc-directory__category-label,
+#phc-cpd-directory .phc-directory__view-label {
   display: block;
   margin-bottom: 0.35rem;
   font-size: 0.95rem;
 }
 
 #phc-cpd-directory .phc-directory__search-input,
-#phc-cpd-directory .phc-directory__category-select {
+#phc-cpd-directory .phc-directory__category-select,
+#phc-cpd-directory .phc-directory__view-select {
   display: block;
   width: 100%;
   margin: 0;
@@ -80,7 +83,8 @@
 }
 
 #phc-cpd-directory .phc-directory__search-input:focus,
-#phc-cpd-directory .phc-directory__category-select:focus {
+#phc-cpd-directory .phc-directory__category-select:focus,
+#phc-cpd-directory .phc-directory__view-select:focus {
   outline: 2px solid #1a1a1a;
   outline-offset: 2px;
 }
@@ -292,6 +296,59 @@
 
 #phc-cpd-directory .phc-directory__result-item {
   margin: 0.35rem 0;
+}
+
+#phc-cpd-directory .phc-directory__schedule-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+#phc-cpd-directory .phc-directory__schedule {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+#phc-cpd-directory .phc-directory__schedule-heading {
+  text-align: left;
+  font-weight: 700;
+  padding: 0.45rem 0.6rem 0.45rem 0;
+  border-bottom: 1px solid #6e6e6e;
+  white-space: nowrap;
+}
+
+#phc-cpd-directory .phc-directory__schedule-row td {
+  padding: 0.55rem 0.6rem 0.55rem 0;
+  vertical-align: top;
+  border-bottom: 1px solid #d6d6d6;
+}
+
+#phc-cpd-directory .phc-directory__schedule-date {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+#phc-cpd-directory .phc-directory__schedule-course-link {
+  color: inherit;
+  text-decoration: underline;
+}
+
+#phc-cpd-directory .phc-directory__schedule-course-link:focus {
+  outline: 2px solid #1a1a1a;
+  outline-offset: 2px;
+}
+
+#phc-cpd-directory .phc-directory__schedule-provider {
+  margin-top: 0.2rem;
+  font-size: 0.875rem;
+  color: #444;
+}
+
+#phc-cpd-directory .phc-directory__schedule-id,
+#phc-cpd-directory .phc-directory__schedule-credits {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 @media (max-width: 40rem) {

@@ -1,5 +1,5 @@
 /**
- * PHC CPD specialization public surface — Milestone 10
+ * PHC CPD specialization public surface — Milestone 11
  */
 
 export { createCpdCourse } from './course.js';
@@ -34,3 +34,11 @@ export {
   createCpdCourseCard,
   createCpdCourseCardList,
 } from './render-cards.js';
+export {
+  CPD_VIEW_MODE_OPTIONS,
+  DEFAULT_CPD_VIEW_MODE,
+  normalizeViewMode,
+} from './view-modes.js';
+export { sortCardsByNextStart } from './sort.js';
+export { createCpdChronologicalList } from './render-list.js';
+export { createCpdResultsView } from './render-views.js';

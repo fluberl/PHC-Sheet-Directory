@@ -1,7 +1,8 @@
 /**
- * Application State — Version 1.0 (Milestone 10)
- * Retains Catalog, SearchResult, accessors, discovery criteria, and snapshot.
+ * Application State — Version 1.0 (Milestone 11)
+ * Retains Catalog, SearchResult, accessors, discovery criteria, view mode, and snapshot.
  * Does not retain raw PUBLIC rows on successful load.
+ * View mode is presentation-only and does not affect discovery results.
  */
 
 import {
@@ -22,6 +23,7 @@ import {
  *   resultCount: number | null,
  *   searchText: string,
  *   categoryId: string,
+ *   viewMode: string,
  *   results: readonly unknown[],
  * }} StateSnapshot
  *
@@ -75,6 +77,7 @@ function emptySnapshotExtras() {
     resultCount: null,
     searchText: '',
     categoryId: '',
+    viewMode: 'calendar',
     results: Object.freeze([]),
   };
 }
@@ -169,6 +172,7 @@ function createStateApi() {
       resultCount: searchResult.size,
       searchText: text,
       categoryId,
+      viewMode: snapshot.viewMode,
       results,
     });
     emit();
@@ -230,6 +234,10 @@ function createStateApi() {
     setEmpty(details) {
       const text = normalizeSearchText(details.searchText ?? '');
       const categoryId = normalizeCategoryId(details.categoryId ?? '');
+      const viewMode =
+        typeof details.viewMode === 'string' && details.viewMode.trim() !== ''
+          ? details.viewMode.trim()
+          : snapshot.viewMode || 'calendar';
       const accessors = details.recordAccessors;
       projectResults =
         typeof details.projectResults === 'function'
@@ -252,6 +260,7 @@ function createStateApi() {
         resultCount: details.searchResult.size,
         searchText: text,
         categoryId,
+        viewMode,
         results,
       });
       emit();
@@ -260,6 +269,10 @@ function createStateApi() {
     setReady(details) {
       const text = normalizeSearchText(details.searchText ?? '');
       const categoryId = normalizeCategoryId(details.categoryId ?? '');
+      const viewMode =
+        typeof details.viewMode === 'string' && details.viewMode.trim() !== ''
+          ? details.viewMode.trim()
+          : snapshot.viewMode || 'calendar';
       const accessors = details.recordAccessors;
       projectResults =
         typeof details.projectResults === 'function'
@@ -280,6 +293,7 @@ function createStateApi() {
         resultCount: details.searchResult.size,
         searchText: text,
         categoryId,
+        viewMode,
         results,
       });
       emit();
@@ -307,6 +321,27 @@ function createStateApi() {
       }
 
       applyDiscovery(snapshot.searchText, normalizeCategoryId(rawCategoryId));
+    },
+
+    setViewMode(rawViewMode) {
+      if (snapshot.lifecycle !== 'ready' && snapshot.lifecycle !== 'empty') {
+        return;
+      }
+
+      const viewMode =
+        typeof rawViewMode === 'string' && rawViewMode.trim() !== ''
+          ? rawViewMode.trim()
+          : 'calendar';
+
+      if (viewMode === snapshot.viewMode) {
+        return;
+      }
+
+      snapshot = Object.freeze({
+        ...snapshot,
+        viewMode,
+      });
+      emit();
     },
 
     setSchemaError(details) {
