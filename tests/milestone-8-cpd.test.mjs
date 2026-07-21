@@ -137,7 +137,7 @@ console.log('Running Milestone 8 tests…');
     readFileSync(join(root, 'examples/public/sample-public.json'), 'utf8'),
   );
   const courses = mapPublicRowsToCpdCourses(fixture);
-  assert(courses.length === 2, 'two courses');
+  assert(courses.length === fixture.length, 'fixture course count');
   assert(courses[0].course.id === 'PHC-CPD-001', 'id 1');
   assert(courses[0].course.location === 'Zürich', 'location in course');
   assert(courses[0].course.cpdHours === 24, 'hours mapped');
@@ -151,7 +151,7 @@ console.log('Running Milestone 8 tests…');
   assert(!('providerId' in courses[0].provider), 'no provider.providerId');
 
   const one = mapPublicRowToCpdCourse(fixture[0]);
-  assert(one.course.title === 'Coaching Practitioner CIS', 'title mapped');
+  assert(one.course.title === 'Health Coaching Fundamentals', 'title mapped');
 }
 
 // --- Catalog ---
@@ -161,23 +161,22 @@ console.log('Running Milestone 8 tests…');
   );
   const courses = mapPublicRowsToCpdCourses(fixture);
   const catalog = createCatalog(courses, cpdRecordAccessors);
-  assert(catalog.size === 2, 'catalog size');
+  assert(catalog.size === fixture.length, 'catalog size');
   assert(catalog.getById('PHC-CPD-001') === courses[0], 'getById');
   assert(catalog.getById('missing') === null, 'missing id');
   assert(
-    catalog.getAll().map((c) => c.course.id).join('|') ===
-      'PHC-CPD-001|PHC-CPD-005',
-    'order',
+    catalog.getAll().map((c) => c.course.id).join('|').startsWith('PHC-CPD-001|PHC-CPD-005'),
+    'order starts with first fixtures',
   );
   const all = catalog.getAll();
   let mutated = false;
   try {
     all.push({});
-    mutated = all.length === 3;
+    mutated = all.length === fixture.length + 1;
   } catch {
     /* frozen */
   }
-  assert(!mutated && all.length === 2, 'catalog immutable');
+  assert(!mutated && all.length === fixture.length, 'catalog immutable');
 }
 
 // --- Search ---
@@ -188,7 +187,7 @@ console.log('Running Milestone 8 tests…');
   const courses = mapPublicRowsToCpdCourses(fixture);
   const catalog = createCatalog(courses, cpdRecordAccessors);
   const all = searchCatalog(catalog, { text: '' }, cpdRecordAccessors);
-  assert(all.size === 2, 'empty search');
+  assert(all.size === fixture.length, 'empty search');
   assert(
     Reflect.ownKeys(all).map(String).sort().join(',') === 'getAll,size',
     'search result api',
@@ -235,15 +234,21 @@ console.log('Running Milestone 8 tests…');
   });
   const snap = state.getSnapshot();
   assert(snap.lifecycle === 'ready', 'ready');
-  assert(snap.rowCount === 2 && snap.resultCount === 2, 'counts');
-  assert(Array.isArray(snap.results) && snap.results.length === 2, 'results');
+  assert(
+    snap.rowCount === fixture.length && snap.resultCount === fixture.length,
+    'counts',
+  );
+  assert(
+    Array.isArray(snap.results) && snap.results.length === fixture.length,
+    'results',
+  );
   assert(snap.results[0].id === 'PHC-CPD-001', 'projection id');
   assert(
-    snap.results[0].title === 'Coaching Practitioner CIS',
+    snap.results[0].title === 'Health Coaching Fundamentals',
     'projection title',
   );
   assert(state.getAcquiredRows() === null, 'no raw rows retained on ready');
-  state.setSearchText('practitioner');
+  state.setSearchText('easybits');
   assert(state.getSnapshot().resultCount === 1, 'search updates projection');
   assert(
     !JSON.stringify(state.getSnapshot()).includes('Name des Anbieters'),

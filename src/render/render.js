@@ -1,23 +1,24 @@
 /**
- * Rendering — Version 1.0 (Milestone 9)
+ * Rendering — Version 1.0 (Milestone 10)
  * Snapshot-only. No Catalog, SearchResult, mapper, or CPD imports.
- * Preserves search-field focus across remounts.
+ * Preserves search and category control focus across remounts.
  */
 
 import { createLifecycleView } from './states.js';
 
 /**
  * @param {unknown} node
+ * @param {string} selector
  * @returns {boolean}
  */
-function isSearchInput(node) {
+function matchesSelector(node, selector) {
   return Boolean(
     node &&
       typeof node === 'object' &&
       typeof /** @type {{ matches?: unknown }} */ (node).matches ===
         'function' &&
       /** @type {{ matches: (selector: string) => boolean }} */ (node).matches(
-        '[data-phc-search]',
+        selector,
       ),
   );
 }
@@ -25,68 +26,93 @@ function isSearchInput(node) {
 /**
  * @param {Element} root
  * @returns {{
- *   restore: boolean,
+ *   kind: 'search' | 'category' | null,
  *   selectionStart: number | null,
  *   selectionEnd: number | null,
+ *   value: string | null,
  * }}
  */
-function captureSearchFocus(root) {
+function captureControlFocus(root) {
   const active =
     typeof document !== 'undefined' ? document.activeElement : null;
 
   if (
-    !isSearchInput(active) ||
+    !active ||
     typeof root.contains !== 'function' ||
     !root.contains(/** @type {Node} */ (active))
   ) {
     return {
-      restore: false,
+      kind: null,
       selectionStart: null,
       selectionEnd: null,
+      value: null,
     };
   }
 
-  const input = /** @type {{ selectionStart?: number | null, selectionEnd?: number | null }} */ (
-    active
-  );
+  if (matchesSelector(active, '[data-phc-search]')) {
+    const input = /** @type {{ selectionStart?: number | null, selectionEnd?: number | null, value?: string }} */ (
+      active
+    );
+    return {
+      kind: 'search',
+      selectionStart:
+        typeof input.selectionStart === 'number' ? input.selectionStart : null,
+      selectionEnd:
+        typeof input.selectionEnd === 'number' ? input.selectionEnd : null,
+      value: typeof input.value === 'string' ? input.value : null,
+    };
+  }
+
+  if (matchesSelector(active, '[data-phc-category]')) {
+    const select = /** @type {{ value?: string }} */ (active);
+    return {
+      kind: 'category',
+      selectionStart: null,
+      selectionEnd: null,
+      value: typeof select.value === 'string' ? select.value : null,
+    };
+  }
 
   return {
-    restore: true,
-    selectionStart:
-      typeof input.selectionStart === 'number' ? input.selectionStart : null,
-    selectionEnd:
-      typeof input.selectionEnd === 'number' ? input.selectionEnd : null,
+    kind: null,
+    selectionStart: null,
+    selectionEnd: null,
+    value: null,
   };
 }
 
 /**
  * @param {Element} root
  * @param {{
- *   restore: boolean,
+ *   kind: 'search' | 'category' | null,
  *   selectionStart: number | null,
  *   selectionEnd: number | null,
+ *   value: string | null,
  * }} focus
  */
-function restoreSearchFocus(root, focus) {
-  if (!focus.restore || typeof root.querySelector !== 'function') {
+function restoreControlFocus(root, focus) {
+  if (!focus.kind || typeof root.querySelector !== 'function') {
     return;
   }
 
-  const input = root.querySelector('[data-phc-search]');
-  if (!isSearchInput(input)) {
+  const selector =
+    focus.kind === 'search' ? '[data-phc-search]' : '[data-phc-category]';
+  const control = root.querySelector(selector);
+  if (!matchesSelector(control, selector)) {
     return;
   }
 
   const field = /** @type {{
  *   focus?: () => void,
  *   setSelectionRange?: (start: number, end: number) => void,
- * }} */ (input);
+ * }} */ (control);
 
   if (typeof field.focus === 'function') {
     field.focus();
   }
 
   if (
+    focus.kind === 'search' &&
     focus.selectionStart != null &&
     focus.selectionEnd != null &&
     typeof field.setSelectionRange === 'function'
@@ -104,11 +130,12 @@ function restoreSearchFocus(root, focus) {
  * @param {object} snapshot
  * @param {{
  *   copy?: object,
+ *   categoryOptions?: readonly { id: string, label: string }[],
  *   renderResults?: (snapshot: object) => HTMLElement | null,
  * }} [options]
  */
 export function render(root, snapshot, options = {}) {
-  const focus = captureSearchFocus(root);
+  const focus = captureControlFocus(root);
 
   root.replaceChildren();
 
@@ -117,5 +144,5 @@ export function render(root, snapshot, options = {}) {
   app.appendChild(createLifecycleView(snapshot, options));
 
   root.appendChild(app);
-  restoreSearchFocus(root, focus);
+  restoreControlFocus(root, focus);
 }

@@ -240,16 +240,21 @@ const publicRows = JSON.parse(
   const card = projectCpdCourseToCard(courses[0]);
 
   assert(card.id === 'PHC-CPD-001', 'card id');
-  assert(card.title === 'Coaching Practitioner CIS', 'card title');
+  assert(card.title === 'Health Coaching Fundamentals', 'card title');
   assert(card.provider.name === 'Coaching Institut Living Sense', 'provider');
   assert(card.provider.websiteUrl === 'https://example.org/living-sense', 'url');
   assert(card.provider.logoUrl === '/assets/demo/logo-living-sense.svg', 'logo');
   assert(!('type' in card.provider), 'provider type omitted from presentation');
   assert(card.classification?.cpdHours === 24, 'cpd hours');
-  assert(card.courseUrl === 'https://example.org/courses/cis', 'course url');
+  assert(card.courseUrl === 'https://example.org/courses/health-coaching', 'course url');
   assert(typeof card.description === 'string' && card.description.length > 40, 'description');
   assert(card.imageUrl === '/assets/demo/course-cis.svg', 'course image');
-  assert(!('qrCodeUrl' in card) || typeof card.qrCodeUrl === 'string', 'qr optional');
+  assert(card.classification?.primaryCategoryId === 'health-coaching-communication', 'primary id');
+  assert(card.classification?.primaryCategorySupported === true, 'supported primary');
+  assert(
+    Array.isArray(card.classification?.alsoListedUnder),
+    'alsoListedUnder secondary list',
+  );
 
   const second = projectCpdCourseToCard(courses[1]);
   assert(second.qrCodeUrl === '/assets/demo/qr-easybits.svg', 'second qr');
@@ -311,9 +316,9 @@ const publicRows = JSON.parse(
     });
     const list = createCpdCourseCardList(cards);
     const articles = findByTag(list, 'article');
-    assert(articles.length === 2, 'two articles');
+    assert(articles.length === cards.length, 'article count');
     assert(findByTag(list, 'h2').length === 1, 'results heading');
-    assert(findByTag(articles[0], 'h3')[0].textContent.includes('Coaching'), 'title heading');
+    assert(findByTag(articles[0], 'h3')[0].textContent.includes('Health Coaching'), 'title heading');
 
     const first = createCpdCourseCard(cards[0]);
     assert(first.getAttribute('data-phc-course-id') === 'PHC-CPD-001', 'data id');
@@ -418,12 +423,12 @@ const publicRows = JSON.parse(
         rowCount: 2,
         resultCount: 0,
         searchText: 'zzzz',
+        categoryId: '',
         results: [],
       },
       { copy: cpdDirectoryCopy },
     );
-    assert(noResults.textContent.includes('No courses match'), 'no-results copy');
-    assert(noResults.textContent.includes('zzzz'), 'search term as text');
+    assert(noResults.textContent.includes('No CPD courses match'), 'no-results copy');
     assert(!noResults.textContent.includes('Loaded (Catalog)'), 'no diagnostic loaded');
 
     const courses = mapPublicRowsToCpdCourses(publicRows);
@@ -439,8 +444,8 @@ const publicRows = JSON.parse(
       recordAccessors: cpdRecordAccessors,
       projectResults: (next) => projectCpdSearchResultToCards(next),
     });
-    assert(state.getSnapshot().results.length === 2, 'ready cards');
-    assert(state.getSnapshot().results[0].title.includes('Coaching'), 'card title in snapshot');
+    assert(state.getSnapshot().results.length === courses.length, 'ready cards');
+    assert(state.getSnapshot().results[0].title.includes('Health Coaching'), 'card title in snapshot');
 
     state.setSearchText('easybits');
     assert(state.getSnapshot().resultCount === 1, 'search hit count');
@@ -496,12 +501,14 @@ const publicRows = JSON.parse(
       {
         lifecycle: 'ready',
         errorMessage: null,
-        rowCount: 2,
-        resultCount: 2,
+        rowCount: cards.length,
+        resultCount: cards.length,
         searchText: '',
+        categoryId: '',
         results: cards,
       },
       {
+        copy: cpdDirectoryCopy,
         renderResults(snapshot) {
           return createCpdCourseCardList(
             /** @type {import('../src/specializations/cpd/presentation.js').CpdCourseCardModel[]} */ (
@@ -516,7 +523,10 @@ const publicRows = JSON.parse(
     assert(hostHeader.includes('host header'), 'header text intact constant');
     assert(hostFooter.includes('host footer'), 'footer text intact constant');
     assert(mount.id === 'phc-cpd-directory', 'mount id unchanged');
-    assert(findByClass(mount, 'phc-directory__card').length === 2, 'cards inside mount');
+    assert(
+      findByClass(mount, 'phc-directory__card').length === cards.length,
+      'cards inside mount',
+    );
   } finally {
     uninstall();
   }

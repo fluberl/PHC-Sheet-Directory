@@ -1,8 +1,8 @@
 # Milestone 9 — CPD Course Card Presentation
 
-**Status:** Completed (pending commit)
+**Status:** Completed
 **Date:** 21 July 2026
-**Baseline:** `41b3707` (post–Milestone 8 documentation and demo command)
+**Baseline:** `40e0348` (Milestone 9 commit)
 
 ## Purpose
 

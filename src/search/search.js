@@ -1,9 +1,9 @@
 /**
- * Search — Version 1.0 (Milestone 8)
+ * Search — Version 1.0 (Milestone 10)
  * Pure function: Catalog + criteria → immutable SearchResult.
  *
- * Title text is read through RecordAccessors (default: flat entry.title).
- * Does not import specializations or know PUBLIC column headings.
+ * Text and optional primary-category id are read through RecordAccessors.
+ * Does not import specializations or know taxonomy labels.
  */
 
 import { flatRecordAccessors } from '../domain/accessors.js';
@@ -18,7 +18,10 @@ import { createSearchResult } from './result.js';
  *   getById: (id: string) => unknown | null,
  * }} Catalog
  *
- * @typedef {{ text?: string | null }} SearchCriteria
+ * @typedef {{
+ *   text?: string | null,
+ *   categoryId?: string | null,
+ * }} SearchCriteria
  */
 
 /**
@@ -34,6 +37,18 @@ export function normalizeSearchText(text) {
 }
 
 /**
+ * @param {unknown} categoryId
+ * @returns {string}
+ */
+export function normalizeCategoryId(categoryId) {
+  if (typeof categoryId !== 'string') {
+    return '';
+  }
+
+  return categoryId.trim();
+}
+
+/**
  * @param {unknown} catalog
  * @returns {asserts catalog is Catalog}
  */
@@ -46,6 +61,21 @@ function assertCatalog(catalog) {
   ) {
     throw new Error('searchCatalog failed: expected a Catalog.');
   }
+}
+
+/**
+ * @param {unknown} entry
+ * @param {RecordAccessors} accessors
+ * @returns {string}
+ */
+function searchableTextFor(entry, accessors) {
+  if (typeof accessors.getSearchableText === 'function') {
+    const text = accessors.getSearchableText(entry);
+    return typeof text === 'string' ? text : '';
+  }
+
+  const title = accessors.getTitle(entry);
+  return typeof title === 'string' ? title : '';
 }
 
 /**
@@ -76,20 +106,34 @@ export function searchCatalog(
   }
 
   const text = normalizeSearchText(criteria?.text);
+  const categoryId = normalizeCategoryId(criteria?.categoryId);
+  const needle = text === '' ? '' : text.toLowerCase();
 
-  if (text === '') {
-    return createSearchResult(source);
+  if (categoryId !== '' && typeof accessors.getPrimaryCategoryId !== 'function') {
+    throw new Error(
+      'searchCatalog failed: category filtering requires getPrimaryCategoryId accessor.',
+    );
   }
 
-  const needle = text.toLowerCase();
   /** @type {unknown[]} */
   const matched = [];
 
   for (const entry of source) {
-    const title = accessors.getTitle(entry);
-    if (typeof title === 'string' && title.toLowerCase().includes(needle)) {
-      matched.push(entry);
+    if (categoryId !== '') {
+      const entryCategoryId = accessors.getPrimaryCategoryId(entry);
+      if (entryCategoryId !== categoryId) {
+        continue;
+      }
     }
+
+    if (needle !== '') {
+      const haystack = searchableTextFor(entry, accessors).toLowerCase();
+      if (!haystack.includes(needle)) {
+        continue;
+      }
+    }
+
+    matched.push(entry);
   }
 
   return createSearchResult(matched);

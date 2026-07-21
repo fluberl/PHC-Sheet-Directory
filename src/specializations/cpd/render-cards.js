@@ -153,13 +153,13 @@ function createMeta(card) {
   }
 
   if (
-    card.classification?.categories &&
-    card.classification.categories.length > 0
+    card.classification?.alsoListedUnder &&
+    card.classification.alsoListedUnder.length > 0
   ) {
     meta.appendChild(
       createMetaItem(
         'Also listed under',
-        card.classification.categories.join(', '),
+        card.classification.alsoListedUnder.join(', '),
       ),
     );
     hasMeta = true;

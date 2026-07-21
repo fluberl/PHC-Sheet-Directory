@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "demo": "python3 -m http.server 8765",
-    "test": "node tests/generic-engine.test.mjs && node tests/milestone-8-cpd.test.mjs && node tests/milestone-9-cpd-cards.test.mjs",
+    "test": "node tests/generic-engine.test.mjs && node tests/milestone-8-cpd.test.mjs && node tests/milestone-9-cpd-cards.test.mjs && node tests/milestone-10-discovery.test.mjs",
     "verify:architecture": "node scripts/verify-architecture.mjs",
     "verify": "npm run test && npm run verify:architecture"
   }

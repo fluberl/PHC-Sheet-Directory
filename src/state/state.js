@@ -1,13 +1,14 @@
 /**
- * Application State — Version 1.0 (Milestone 9)
- * Retains Catalog, SearchResult, record accessors, optional result projector,
- * and rendering snapshot. Does not retain raw PUBLIC rows on successful load.
+ * Application State — Version 1.0 (Milestone 10)
+ * Retains Catalog, SearchResult, accessors, discovery criteria, and snapshot.
+ * Does not retain raw PUBLIC rows on successful load.
  */
 
 import {
   projectIdTitleResults,
 } from '../domain/accessors.js';
 import {
+  normalizeCategoryId,
   normalizeSearchText,
   searchCatalog,
 } from '../search/search.js';
@@ -20,6 +21,7 @@ import {
  *   rowCount: number | null,
  *   resultCount: number | null,
  *   searchText: string,
+ *   categoryId: string,
  *   results: readonly unknown[],
  * }} StateSnapshot
  *
@@ -72,6 +74,7 @@ function emptySnapshotExtras() {
   return {
     resultCount: null,
     searchText: '',
+    categoryId: '',
     results: Object.freeze([]),
   };
 }
@@ -144,6 +147,33 @@ function createStateApi() {
     return projectIdTitleResults(nextSearchResult, accessors);
   }
 
+  /**
+   * @param {string} text
+   * @param {string} categoryId
+   */
+  function applyDiscovery(text, categoryId) {
+    if (!catalog || !recordAccessors) {
+      return;
+    }
+
+    searchResult = searchCatalog(
+      catalog,
+      { text, categoryId },
+      recordAccessors,
+    );
+    const results = buildResults(searchResult, recordAccessors);
+    snapshot = Object.freeze({
+      lifecycle: snapshot.lifecycle,
+      errorMessage: null,
+      rowCount: catalog.size,
+      resultCount: searchResult.size,
+      searchText: text,
+      categoryId,
+      results,
+    });
+    emit();
+  }
+
   return {
     getSnapshot() {
       return snapshot;
@@ -199,6 +229,7 @@ function createStateApi() {
 
     setEmpty(details) {
       const text = normalizeSearchText(details.searchText ?? '');
+      const categoryId = normalizeCategoryId(details.categoryId ?? '');
       const accessors = details.recordAccessors;
       projectResults =
         typeof details.projectResults === 'function'
@@ -220,6 +251,7 @@ function createStateApi() {
         rowCount: details.catalog.size,
         resultCount: details.searchResult.size,
         searchText: text,
+        categoryId,
         results,
       });
       emit();
@@ -227,6 +259,7 @@ function createStateApi() {
 
     setReady(details) {
       const text = normalizeSearchText(details.searchText ?? '');
+      const categoryId = normalizeCategoryId(details.categoryId ?? '');
       const accessors = details.recordAccessors;
       projectResults =
         typeof details.projectResults === 'function'
@@ -246,6 +279,7 @@ function createStateApi() {
         rowCount: details.catalog.size,
         resultCount: details.searchResult.size,
         searchText: text,
+        categoryId,
         results,
       });
       emit();
@@ -260,18 +294,19 @@ function createStateApi() {
         return;
       }
 
-      const text = normalizeSearchText(rawText);
-      searchResult = searchCatalog(catalog, { text }, recordAccessors);
-      const results = buildResults(searchResult, recordAccessors);
-      snapshot = Object.freeze({
-        lifecycle: snapshot.lifecycle,
-        errorMessage: null,
-        rowCount: catalog.size,
-        resultCount: searchResult.size,
-        searchText: text,
-        results,
-      });
-      emit();
+      applyDiscovery(normalizeSearchText(rawText), snapshot.categoryId);
+    },
+
+    setCategoryId(rawCategoryId) {
+      if (
+        !catalog ||
+        !recordAccessors ||
+        (snapshot.lifecycle !== 'ready' && snapshot.lifecycle !== 'empty')
+      ) {
+        return;
+      }
+
+      applyDiscovery(snapshot.searchText, normalizeCategoryId(rawCategoryId));
     },
 
     setSchemaError(details) {

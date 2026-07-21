@@ -4,6 +4,8 @@
  * Knows no German PUBLIC headings and emits no HTML/CSS/DOM.
  */
 
+import { resolvePrimaryCategory } from './taxonomy.js';
+
 /**
  * @typedef {import('./course.js').CpdCourse} CpdCourse
  *
@@ -14,8 +16,10 @@
  * }} CpdCardProvider
  *
  * @typedef {{
+ *   primaryCategoryId?: string,
  *   primaryCategory?: string,
- *   categories?: readonly string[],
+ *   primaryCategorySupported?: boolean,
+ *   alsoListedUnder?: readonly string[],
  *   cpdHours?: number,
  * }} CpdCardClassification
  *
@@ -166,13 +170,20 @@ export function projectCpdCourseToCard(course) {
 
   /** @type {CpdCardClassification} */
   const classification = {};
-  if (isNonEmptyString(course.classification?.primaryCategory)) {
-    classification.primaryCategory = course.classification.primaryCategory;
+  const primary = resolvePrimaryCategory(course.classification?.primaryCategory);
+  if (primary.label !== '') {
+    classification.primaryCategory = primary.label;
+    classification.primaryCategorySupported = primary.supported;
+    if (primary.id) {
+      classification.primaryCategoryId = primary.id;
+    }
   }
 
-  const categories = optionalStringList(course.classification?.categories ?? []);
-  if (categories) {
-    classification.categories = categories;
+  const alsoListedUnder = optionalStringList(
+    course.classification?.categories ?? [],
+  );
+  if (alsoListedUnder) {
+    classification.alsoListedUnder = alsoListedUnder;
   }
 
   if (

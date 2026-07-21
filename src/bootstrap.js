@@ -1,6 +1,6 @@
 /**
- * Bootstrap — Version 1.0 (Milestone 9)
- * Orchestrates PUBLIC → CPD domain → Catalog → Search → card projection → State.
+ * Bootstrap — Version 1.0 (Milestone 10)
+ * Orchestrates PUBLIC → CPD domain → Catalog → discovery → card projection.
  */
 
 import { getConfig } from './config/config.js';
@@ -16,6 +16,7 @@ import { bind } from './interaction/interaction.js';
 import { render } from './render/render.js';
 import {
   cpdRecordAccessors,
+  listPrimaryCategories,
   mapPublicRowsToCpdCourses,
   projectCpdSearchResultToCards,
 } from './specializations/cpd/index.js';
@@ -23,6 +24,10 @@ import { cpdDirectoryCopy } from './specializations/cpd/copy.js';
 import { createCpdCourseCardList } from './specializations/cpd/render-cards.js';
 
 let hasStarted = false;
+
+const categoryOptions = listPrimaryCategories().map((item) =>
+  Object.freeze({ id: item.id, label: item.label }),
+);
 
 /**
  * @param {{ mountSelector: string, publicSource?: string }} config
@@ -87,9 +92,10 @@ async function loadPublic(config, state) {
   }
 
   const searchText = '';
+  const categoryId = '';
   const searchResult = searchCatalog(
     catalog,
-    { text: searchText },
+    { text: searchText, categoryId },
     cpdRecordAccessors,
   );
 
@@ -103,6 +109,7 @@ async function loadPublic(config, state) {
       catalog,
       searchResult,
       searchText,
+      categoryId,
       recordAccessors: cpdRecordAccessors,
       projectResults,
     });
@@ -115,6 +122,7 @@ async function loadPublic(config, state) {
     catalog,
     searchResult,
     searchText,
+    categoryId,
     recordAccessors: cpdRecordAccessors,
     projectResults,
   });
@@ -147,6 +155,7 @@ export function start(hostOptions = {}) {
   const renderSnapshot = (snapshot) => {
     render(mount.root, snapshot, {
       copy: cpdDirectoryCopy,
+      categoryOptions,
       renderResults(current) {
         const cards = Array.isArray(current.results) ? current.results : [];
         return createCpdCourseCardList(
@@ -164,6 +173,9 @@ export function start(hostOptions = {}) {
   bind(mount.root, {
     onSearchInput(value) {
       state.setSearchText(value);
+    },
+    onCategoryChange(value) {
+      state.setCategoryId(value);
     },
   });
 

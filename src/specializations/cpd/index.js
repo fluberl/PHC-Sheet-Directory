@@ -1,5 +1,5 @@
 /**
- * PHC CPD specialization public surface — Milestone 9
+ * PHC CPD specialization public surface — Milestone 10
  */
 
 export { createCpdCourse } from './course.js';
@@ -13,8 +13,18 @@ export {
   mapPublicRowToCpdCourse,
   mapPublicRowsToCpdCourses,
 } from './map-public-row.js';
-export { cpdRecordAccessors } from './accessors.js';
+export {
+  buildCpdSearchableText,
+  cpdRecordAccessors,
+} from './accessors.js';
 export { cpdDirectoryCopy } from './copy.js';
+export {
+  CPD_PRIMARY_CATEGORIES,
+  getPrimaryCategoryLabel,
+  isKnownPrimaryCategoryId,
+  listPrimaryCategories,
+  resolvePrimaryCategory,
+} from './taxonomy.js';
 export {
   projectCpdCourseToCard,
   projectCpdCoursesToCards,

@@ -1,18 +1,25 @@
 /**
- * Generic record accessors — Version 1.0 (Milestone 8)
- * Catalog and Search read id/title through accessors so nested
- * specialization shapes (e.g. CPD) do not leak into generic modules.
+ * Generic record accessors — Version 1.0 (Milestone 10)
+ * Catalog and Search read identity/title/search/category through accessors
+ * so specialization shapes do not leak into generic modules.
  */
 
 /**
  * @typedef {{
  *   getId: (entry: unknown) => string,
  *   getTitle: (entry: unknown) => string,
+ *   getSearchableText?: (entry: unknown) => string,
+ *   getPrimaryCategoryId?: (entry: unknown) => string | null,
  * }} RecordAccessors
  */
 
 /**
- * @param {{ getId: (entry: unknown) => string, getTitle: (entry: unknown) => string }} accessors
+ * @param {{
+ *   getId: (entry: unknown) => string,
+ *   getTitle: (entry: unknown) => string,
+ *   getSearchableText?: (entry: unknown) => string,
+ *   getPrimaryCategoryId?: (entry: unknown) => string | null,
+ * }} accessors
  * @returns {Readonly<RecordAccessors>}
  */
 export function createRecordAccessors(accessors) {
@@ -20,10 +27,21 @@ export function createRecordAccessors(accessors) {
     throw new Error('Record accessors require getId and getTitle functions.');
   }
 
-  return Object.freeze({
+  /** @type {RecordAccessors} */
+  const created = {
     getId: accessors.getId,
     getTitle: accessors.getTitle,
-  });
+  };
+
+  if (typeof accessors.getSearchableText === 'function') {
+    created.getSearchableText = accessors.getSearchableText;
+  }
+
+  if (typeof accessors.getPrimaryCategoryId === 'function') {
+    created.getPrimaryCategoryId = accessors.getPrimaryCategoryId;
+  }
+
+  return Object.freeze(created);
 }
 
 /**

@@ -1,19 +1,28 @@
 # PHC Directory Engine — Milestones
 
-Index of completed implementation milestones. Architecture snapshots live under
-[`docs/architecture/`](../architecture/). The institutional baseline is
-[ADR-0001](../adr/0001-phc-directory-engine-v1-architecture.md).
+Index of implementation milestones documenting the evolution of the PHC
+Directory Engine.
 
-## Current stage
+Long-lived architectural decisions are recorded as Architecture Decision
+Records (ADR) under [`docs/adr/`](../adr/).
 
-**Milestone 9 — CPD course card presentation** (pending commit): presentation
-projection, accessible course cards with desktop visual alternation and stable
-mobile/DOM order, generic Catalog/Search preserved.
+Milestone documents live under [`docs/milestones/`](./).
 
-## Milestone table
+---
+
+## Current Stage
+
+**Milestone 10 — Discovery** *(implemented, pending commit)*
+
+Taxonomy-driven discovery through multi-field search and primary-category
+filtering, while preserving the generic directory architecture.
+
+---
+
+## Milestone Table
 
 | Milestone | Status | Description | Document |
-|-----------|--------|-------------|---------|
+|-----------|--------|-------------|----------|
 | M1 | Completed | Host Contract and Bootstrap | — |
 | M2 | Completed | Application State and Error Handling | — |
 | M3 | Completed | PUBLIC Data Acquisition | — |
@@ -21,8 +30,13 @@ mobile/DOM order, generic Catalog/Search preserved.
 | M5 | Completed | Domain Model and Transformation | — |
 | M6 | Completed | Generic Catalog | — |
 | M7 | Completed | Generic Search | — |
-| M8 | Completed | CPD domain specialization; generic flat engine preserved | [milestone-8-cpd-integration.md](../architecture/milestone-8-cpd-integration.md) |
-| M9 | Completed (pending commit) | CPD presentation projection and accessible course-card rendering | [M9-cpd-course-card-presentation.md](./M9-cpd-course-card-presentation.md) |
+| M8 | Completed | CPD domain specialization while preserving the generic engine | [M8-cpd-integration.md](./M8-cpd-integration.md) |
+| M9 | Completed | Editorial CPD course presentation | [M9-cpd-course-card-presentation.md](./M9-cpd-course-card-presentation.md) |
+| M10 | Implemented (pending commit) | Discovery through taxonomy, search and category filtering | [M10-discovery.md](./M10-discovery.md) |
 
-Milestones 1–7 predate this index; they are recorded from commit history and are
-not documented retrospectively as full architecture snapshots.
+---
+
+Milestones 1–7 predate the formal milestone documentation.
+
+Their implementation history can be reconstructed from the Git commit history,
+but no retrospective milestone documents have been created.

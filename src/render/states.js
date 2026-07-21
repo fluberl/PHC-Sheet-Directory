@@ -1,7 +1,7 @@
 /**
- * Lifecycle views — Version 1.0 (Milestone 9)
- * Generic shell for lifecycle, search, and optional result rendering.
- * Does not import CPD specialization. Copy is injectable.
+ * Lifecycle views — Version 1.0 (Milestone 10)
+ * Generic shell for lifecycle, discovery controls, and optional results.
+ * Does not import CPD specialization. Copy and category options are injectable.
  */
 
 /**
@@ -9,13 +9,19 @@
  *   loading: string,
  *   empty: string,
  *   searchLabel: string,
+ *   categoryLabel: string,
+ *   allCategoriesLabel: string,
  *   resultStatusNone: string,
  *   resultStatusOne: string,
  *   resultStatusMany: (count: number) => string,
- *   noResultsWithTerm: (term: string) => string,
  *   noResults: string,
  *   errorFallback: string,
  * }} DirectoryCopy
+ *
+ * @typedef {{
+ *   id: string,
+ *   label: string,
+ * }} CategoryOption
  *
  * @typedef {{
  *   lifecycle: string,
@@ -23,11 +29,13 @@
  *   rowCount: number | null,
  *   resultCount: number | null,
  *   searchText: string,
+ *   categoryId?: string,
  *   results?: readonly unknown[],
  * }} LifecycleSnapshot
  *
  * @typedef {{
  *   copy?: Partial<DirectoryCopy>,
+ *   categoryOptions?: readonly CategoryOption[],
  *   renderResults?: (snapshot: LifecycleSnapshot) => HTMLElement | null,
  * }} LifecycleViewOptions
  */
@@ -37,15 +45,15 @@ export const defaultDirectoryCopy = Object.freeze({
   loading: 'Loading…',
   empty: 'No entries are available.',
   searchLabel: 'Search',
+  categoryLabel: 'Category',
+  allCategoriesLabel: 'All categories',
   resultStatusNone: 'No matching results',
   resultStatusOne: '1 result',
   resultStatusMany(count) {
     return `${count} results`;
   },
-  noResultsWithTerm(term) {
-    return `No results match “${term}”. Try another search term, or clear the search field.`;
-  },
-  noResults: 'No results match the current search.',
+  noResults:
+    'No results match your current search and category. Try another search term, choose another category, or clear the filters.',
   errorFallback: 'Something went wrong while loading the directory.',
 });
 
@@ -96,14 +104,16 @@ export function createLifecycleView(snapshot, options = {}) {
     const status = document.createElement('div');
     status.className = 'phc-directory__status phc-directory__status--ready';
 
-    status.appendChild(createSearchControls(snapshot, copy));
+    status.appendChild(
+      createDiscoveryControls(snapshot, copy, options.categoryOptions ?? []),
+    );
     status.appendChild(createResultStatus(snapshot, copy));
 
     const resultCount =
       snapshot.resultCount == null ? 0 : snapshot.resultCount;
 
     if (resultCount === 0) {
-      status.appendChild(createNoResultsMessage(snapshot, copy));
+      status.appendChild(createNoResultsMessage(copy));
     } else if (typeof options.renderResults === 'function') {
       const resultsView = options.renderResults(snapshot);
       if (resultsView) {
@@ -126,18 +136,22 @@ export function createLifecycleView(snapshot, options = {}) {
 }
 
 /**
- * @param {{ searchText: string }} snapshot
+ * @param {LifecycleSnapshot} snapshot
  * @param {DirectoryCopy} copy
+ * @param {readonly CategoryOption[]} categoryOptions
  * @returns {HTMLElement}
  */
-function createSearchControls(snapshot, copy) {
+function createDiscoveryControls(snapshot, copy, categoryOptions) {
   const controls = document.createElement('div');
-  controls.className = 'phc-directory__search';
+  controls.className = 'phc-directory__discovery';
 
-  const label = document.createElement('label');
-  label.className = 'phc-directory__search-label';
-  label.setAttribute('for', 'phc-directory-search');
-  label.textContent = copy.searchLabel;
+  const search = document.createElement('div');
+  search.className = 'phc-directory__search';
+
+  const searchLabel = document.createElement('label');
+  searchLabel.className = 'phc-directory__search-label';
+  searchLabel.setAttribute('for', 'phc-directory-search');
+  searchLabel.textContent = copy.searchLabel;
 
   const input = document.createElement('input');
   input.id = 'phc-directory-search';
@@ -149,8 +163,50 @@ function createSearchControls(snapshot, copy) {
   input.setAttribute('aria-controls', 'phc-directory-result-status');
   input.value = snapshot.searchText ?? '';
 
-  controls.appendChild(label);
-  controls.appendChild(input);
+  search.appendChild(searchLabel);
+  search.appendChild(input);
+  controls.appendChild(search);
+
+  if (categoryOptions.length > 0) {
+    const category = document.createElement('div');
+    category.className = 'phc-directory__category';
+
+    const categoryLabel = document.createElement('label');
+    categoryLabel.className = 'phc-directory__category-label';
+    categoryLabel.setAttribute('for', 'phc-directory-category');
+    categoryLabel.textContent = copy.categoryLabel;
+
+    const select = document.createElement('select');
+    select.id = 'phc-directory-category';
+    select.className = 'phc-directory__category-select';
+    select.setAttribute('data-phc-category', '');
+    select.setAttribute('aria-controls', 'phc-directory-result-status');
+
+    const allOption = document.createElement('option');
+    allOption.value = '';
+    allOption.textContent = copy.allCategoriesLabel;
+    select.appendChild(allOption);
+
+    const selected = snapshot.categoryId ?? '';
+    categoryOptions.forEach((option) => {
+      const node = document.createElement('option');
+      node.value = option.id;
+      node.textContent = option.label;
+      if (option.id === selected) {
+        node.selected = true;
+      }
+      select.appendChild(node);
+    });
+
+    if (selected === '') {
+      allOption.selected = true;
+    }
+
+    category.appendChild(categoryLabel);
+    category.appendChild(select);
+    controls.appendChild(category);
+  }
+
   return controls;
 }
 
@@ -159,6 +215,7 @@ function createSearchControls(snapshot, copy) {
  *   rowCount: number | null,
  *   resultCount: number | null,
  *   searchText: string,
+ *   categoryId?: string,
  * }} snapshot
  * @param {DirectoryCopy} copy
  * @returns {HTMLElement}
@@ -173,8 +230,10 @@ function createResultStatus(snapshot, copy) {
   const resultCount = snapshot.resultCount == null ? 0 : snapshot.resultCount;
   const rowCount = snapshot.rowCount == null ? 0 : snapshot.rowCount;
   const searchText = snapshot.searchText ?? '';
+  const categoryId = snapshot.categoryId ?? '';
+  const filtersActive = searchText !== '' || categoryId !== '';
 
-  if (resultCount === 0 && rowCount > 0 && searchText !== '') {
+  if (resultCount === 0 && rowCount > 0 && filtersActive) {
     status.textContent = copy.resultStatusNone;
   } else if (resultCount === 1) {
     status.textContent = copy.resultStatusOne;
@@ -186,21 +245,17 @@ function createResultStatus(snapshot, copy) {
 }
 
 /**
- * @param {{ searchText: string }} snapshot
  * @param {DirectoryCopy} copy
  * @returns {HTMLElement}
  */
-function createNoResultsMessage(snapshot, copy) {
+function createNoResultsMessage(copy) {
   const message = document.createElement('div');
   message.className = 'phc-directory__no-results';
   message.setAttribute('role', 'status');
 
   const paragraph = document.createElement('p');
   paragraph.className = 'phc-directory__no-results-text';
-
-  const term = snapshot.searchText ?? '';
-  paragraph.textContent =
-    term !== '' ? copy.noResultsWithTerm(term) : copy.noResults;
+  paragraph.textContent = copy.noResults;
 
   message.appendChild(paragraph);
   return message;

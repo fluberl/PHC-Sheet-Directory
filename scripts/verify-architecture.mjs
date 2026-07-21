@@ -1,5 +1,5 @@
 /**
- * Architecture verification — Milestone 9
+ * Architecture verification — Milestone 10
  * Structural checks (imports/exports/APIs), not comment sniffing.
  */
 
@@ -33,7 +33,20 @@ const PUBLIC_HEADINGS = Object.freeze([
   'Kursseite / Anmeldung',
 ]);
 
+const TAXONOMY_IDS = Object.freeze([
+  'lifestyle-medicine',
+  'mental-health-wellbeing',
+  'womens-health',
+  'mens-health',
+  'healthy-ageing',
+  'prevention-health-promotion',
+  'health-coaching-communication',
+  'integrative-health',
+  'professional-development',
+]);
+
 const MAPPER_REL = 'src/specializations/cpd/map-public-row.js';
+const TAXONOMY_REL = 'src/specializations/cpd/taxonomy.js';
 
 function read(rel) {
   return readFileSync(join(root, rel), 'utf8');
@@ -71,6 +84,7 @@ function listJsFiles(dirRel) {
 }
 
 assert(!existsSync(join(root, 'src/query')), 'src/query/ must not exist');
+assert(existsSync(join(root, TAXONOMY_REL)), 'CPD taxonomy module required');
 
 const resultSrc = read('src/search/result.js');
 assert(
@@ -99,6 +113,7 @@ const genericFiles = [
   'src/domain/entry.js',
   'src/domain/transform.js',
   'src/state/state.js',
+  'src/interaction/interaction.js',
 ];
 
 for (const file of genericFiles) {
@@ -107,14 +122,43 @@ for (const file of genericFiles) {
     !/specializations\/cpd/.test(src),
     `${file} must not import CPD specialization`,
   );
-  assert(!/map-public-row/.test(src), `${file} must not import PUBLIC mapper`);
+  assert(
+    !/map-public-row|taxonomy\.js/.test(src),
+    `${file} must not import CPD mapper/taxonomy`,
+  );
   assert(
     !/Course information and registration|CPD hours|Also listed under|CPD offerings/.test(
       src,
     ),
     `${file} must not contain CPD presentation labels`,
   );
+  for (const id of TAXONOMY_IDS) {
+    assert(
+      !src.includes(id),
+      `${file} must not hard-code PHC taxonomy id ${id}`,
+    );
+  }
+  assert(
+    !/Lifestyle Medicine|Mental Health & Wellbeing|Women's Health/.test(src),
+    `${file} must not hard-code PHC taxonomy labels`,
+  );
 }
+
+const searchSrc = read('src/search/search.js');
+assert(
+  /getSearchableText|getPrimaryCategoryId/.test(searchSrc),
+  'Generic search must use accessor hooks for discovery fields',
+);
+assert(
+  !/querySelectorAll\(|getElementsByClassName\(/.test(searchSrc),
+  'Search must not use ad hoc DOM filtering',
+);
+
+const interactionSrc = read('src/interaction/interaction.js');
+assert(
+  !/querySelectorAll\(|getElementsByClassName\(/.test(interactionSrc),
+  'Interaction must not filter cards via DOM queries',
+);
 
 const renderFiles = ['src/render/render.js', 'src/render/states.js'];
 for (const file of renderFiles) {
@@ -126,6 +170,11 @@ for (const file of renderFiles) {
     !/phc-directory__card/.test(src),
     `${file} must not own CPD card markup classes`,
   );
+}
+
+const taxonomySrc = read(TAXONOMY_REL);
+for (const id of TAXONOMY_IDS) {
+  assert(taxonomySrc.includes(id), `Taxonomy must define ${id}`);
 }
 
 const presentationSrc = read('src/specializations/cpd/presentation.js');
@@ -201,8 +250,12 @@ for (const file of productionJs) {
 
 const statesSrc = read('src/render/states.js');
 assert(
-  !/data-phc-filter/.test(statesSrc),
-  'No filtering UI expected in Milestone 9',
+  /data-phc-category/.test(statesSrc),
+  'Discovery category control expected in lifecycle shell',
+);
+assert(
+  !/filter-sidebar|accordion/.test(statesSrc),
+  'No complex filter chrome in generic lifecycle shell',
 );
 
 const cssSrc = read('assets/styles/phc-directory.css');
@@ -213,6 +266,10 @@ assert(
 assert(
   !/(^|\n)\s*(body|h1|p|ul|a)\s*\{/.test(cssSrc),
   'Styles must not use unscoped broad element selectors',
+);
+assert(
+  !/#phc-cpd-directory[\s\S]*\border\s*:/.test(cssSrc),
+  'Card media alternation must not use CSS order',
 );
 
 console.log('Architecture verification passed.');

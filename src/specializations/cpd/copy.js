@@ -1,12 +1,14 @@
 /**
- * CPD directory UI copy — Milestone 9
+ * CPD directory UI copy — Milestone 10
  * Specialization-owned strings for the generic lifecycle shell.
  */
 
 export const cpdDirectoryCopy = Object.freeze({
   loading: 'Loading CPD offerings…',
   empty: 'No CPD offerings are currently available.',
-  searchLabel: 'Search courses by title',
+  searchLabel: 'Search courses',
+  categoryLabel: 'Category',
+  allCategoriesLabel: 'All categories',
   resultStatusNone: 'No matching courses',
   resultStatusOne: '1 course',
   /**
@@ -16,13 +18,7 @@ export const cpdDirectoryCopy = Object.freeze({
   resultStatusMany(count) {
     return `${count} courses`;
   },
-  /**
-   * @param {string} term
-   * @returns {string}
-   */
-  noResultsWithTerm(term) {
-    return `No courses match “${term}”. Try another search term, or clear the search field.`;
-  },
-  noResults: 'No courses match the current search.',
+  noResults:
+    'No CPD courses match your current search and category. Try another search term, choose another category, or clear the filters.',
   errorFallback: 'Something went wrong while loading the directory.',
 });
