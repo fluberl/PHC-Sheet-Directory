@@ -47,3 +47,30 @@
 #phc-cpd-directory .phc-directory__status--error {
   color: #8b1e1e;
 }
+
+#phc-cpd-directory .phc-directory__search {
+  margin: 1rem 0 0.75rem;
+}
+
+#phc-cpd-directory .phc-directory__search-label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.95rem;
+}
+
+#phc-cpd-directory .phc-directory__search-input {
+  display: block;
+  width: 100%;
+  max-width: 28rem;
+  margin: 0;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid #8a8a8a;
+  border-radius: 0;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+}
+
+#phc-cpd-directory .phc-directory__diagnostics {
+  margin-top: 0.75rem;
+}

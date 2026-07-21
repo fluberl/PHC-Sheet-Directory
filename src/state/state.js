@@ -1,25 +1,23 @@
 /**
- * Application State — Version 1.0 (Milestone 6)
+ * Application State — Version 1.0 (Milestone 7)
  * Owns mutable session lifecycle.
- * Retains acquired rows, Validation Results, Domain Entries, and Catalog internally.
- * Does not know about DOM, fetch, or presentation layout.
+ * Retains Catalog (source), normalized search text, and SearchResult (derived).
  *
  * ---------------------------------------------------------------------------
  * Internal interfaces (not for Rendering)
  * ---------------------------------------------------------------------------
  * - getSnapshot()
- *     { lifecycle, errorMessage, rowCount }
- *
- * - getAcquiredRows()
- * - getValidationResult()
- * - getEntries()
+ *     { lifecycle, errorMessage, rowCount, resultCount, searchText }
  * - getCatalog()
- *     Catalog after successful creation:
- *       - ready / empty → Catalog instance
- *       - loading / transport-error / schema-error / transform-error /
- *         catalog-error → null
+ * - getSearchResult()
+ * - setSearchText(rawText) — re-derives SearchResult from Catalog
  * ---------------------------------------------------------------------------
  */
+
+import {
+  normalizeSearchText,
+  searchCatalog,
+} from '../search/search.js';
 
 /**
  * @typedef {'loading' | 'empty' | 'ready' | 'error'} Lifecycle
@@ -27,6 +25,8 @@
  *   lifecycle: Lifecycle,
  *   errorMessage: string | null,
  *   rowCount: number | null,
+ *   resultCount: number | null,
+ *   searchText: string,
  * }} StateSnapshot
  *
  * @typedef {{
@@ -46,6 +46,11 @@
  *   getAll: () => readonly DirectoryEntry[],
  *   getById: (id: string) => DirectoryEntry | null,
  * }} Catalog
+ *
+ * @typedef {{
+ *   readonly size: number,
+ *   getAll: () => readonly DirectoryEntry[],
+ * }} SearchResult
  */
 
 /**
@@ -83,6 +88,7 @@ function retainEntries(nextEntries) {
  *   getValidationResult: () => ValidationResult | null,
  *   getEntries: () => readonly DirectoryEntry[] | null,
  *   getCatalog: () => Catalog | null,
+ *   getSearchResult: () => SearchResult | null,
  *   subscribe: (listener: (snapshot: StateSnapshot) => void) => () => void,
  *   setLoading: () => void,
  *   setEmpty: (details: {
@@ -90,13 +96,18 @@ function retainEntries(nextEntries) {
  *     validationResult?: ValidationResult,
  *     entries?: DirectoryEntry[],
  *     catalog: Catalog,
+ *     searchResult: SearchResult,
+ *     searchText?: string,
  *   }) => void,
  *   setReady: (details: {
  *     rows: unknown[],
  *     validationResult: ValidationResult,
  *     entries: DirectoryEntry[],
  *     catalog: Catalog,
+ *     searchResult: SearchResult,
+ *     searchText?: string,
  *   }) => void,
+ *   setSearchText: (rawText: string) => void,
  *   setSchemaError: (details: {
  *     rows: unknown[],
  *     validationResult: ValidationResult,
@@ -122,6 +133,8 @@ export function createState() {
     lifecycle: 'loading',
     errorMessage: null,
     rowCount: null,
+    resultCount: null,
+    searchText: '',
   });
 
   /** @type {readonly unknown[] | null} */
@@ -135,6 +148,9 @@ export function createState() {
 
   /** @type {Catalog | null} */
   let catalog = null;
+
+  /** @type {SearchResult | null} */
+  let searchResult = null;
 
   /** @type {Set<(snapshot: StateSnapshot) => void>} */
   const listeners = new Set();
@@ -175,6 +191,10 @@ export function createState() {
       return catalog;
     },
 
+    getSearchResult() {
+      return searchResult;
+    },
+
     subscribe(listener) {
       listeners.add(listener);
       return () => {
@@ -187,10 +207,13 @@ export function createState() {
       validationResult = null;
       entries = null;
       catalog = null;
+      searchResult = null;
       snapshot = Object.freeze({
         lifecycle: 'loading',
         errorMessage: null,
         rowCount: null,
+        resultCount: null,
+        searchText: '',
       });
       emit();
     },
@@ -202,28 +225,59 @@ export function createState() {
         errors: [],
       };
       const nextEntries = details.entries ?? [];
+      const text = normalizeSearchText(details.searchText ?? '');
 
       acquiredRows = retainRows(rows);
       validationResult = retainValidationResult(nextValidation);
       entries = retainEntries(nextEntries);
       catalog = details.catalog;
+      searchResult = details.searchResult;
       snapshot = Object.freeze({
         lifecycle: 'empty',
         errorMessage: null,
         rowCount: details.catalog.size,
+        resultCount: details.searchResult.size,
+        searchText: text,
       });
       emit();
     },
 
     setReady(details) {
+      const text = normalizeSearchText(details.searchText ?? '');
+
       acquiredRows = retainRows(details.rows);
       validationResult = retainValidationResult(details.validationResult);
       entries = retainEntries(details.entries);
       catalog = details.catalog;
+      searchResult = details.searchResult;
       snapshot = Object.freeze({
         lifecycle: 'ready',
         errorMessage: null,
         rowCount: details.catalog.size,
+        resultCount: details.searchResult.size,
+        searchText: text,
+      });
+      emit();
+    },
+
+    /**
+     * Update search criterion and re-derive SearchResult from Catalog.
+     * Does not change lifecycle when Catalog is non-empty (zero matches ≠ error).
+     * @param {string} rawText
+     */
+    setSearchText(rawText) {
+      if (!catalog || (snapshot.lifecycle !== 'ready' && snapshot.lifecycle !== 'empty')) {
+        return;
+      }
+
+      const text = normalizeSearchText(rawText);
+      searchResult = searchCatalog(catalog, { text });
+      snapshot = Object.freeze({
+        lifecycle: snapshot.lifecycle,
+        errorMessage: null,
+        rowCount: catalog.size,
+        resultCount: searchResult.size,
+        searchText: text,
       });
       emit();
     },
@@ -233,10 +287,13 @@ export function createState() {
       validationResult = retainValidationResult(details.validationResult);
       entries = null;
       catalog = null;
+      searchResult = null;
       snapshot = Object.freeze({
         lifecycle: 'error',
         errorMessage: details.message,
         rowCount: null,
+        resultCount: null,
+        searchText: '',
       });
       emit();
     },
@@ -246,10 +303,13 @@ export function createState() {
       validationResult = retainValidationResult(details.validationResult);
       entries = null;
       catalog = null;
+      searchResult = null;
       snapshot = Object.freeze({
         lifecycle: 'error',
         errorMessage: details.message,
         rowCount: null,
+        resultCount: null,
+        searchText: '',
       });
       emit();
     },
@@ -259,10 +319,13 @@ export function createState() {
       validationResult = retainValidationResult(details.validationResult);
       entries = retainEntries(details.entries);
       catalog = null;
+      searchResult = null;
       snapshot = Object.freeze({
         lifecycle: 'error',
         errorMessage: details.message,
         rowCount: null,
+        resultCount: null,
+        searchText: '',
       });
       emit();
     },
@@ -272,10 +335,13 @@ export function createState() {
       validationResult = null;
       entries = null;
       catalog = null;
+      searchResult = null;
       snapshot = Object.freeze({
         lifecycle: 'error',
         errorMessage: message,
         rowCount: null,
+        resultCount: null,
+        searchText: '',
       });
       emit();
     },

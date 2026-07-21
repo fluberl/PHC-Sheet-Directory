@@ -1,7 +1,7 @@
 /**
- * Rendering — Version 1.0 (Milestone 3)
+ * Rendering — Version 1.0 (Milestone 7)
  * Projects Application State into the mount root only.
- * Knows nothing about PUBLIC structure beyond the state snapshot.
+ * Receives only the immutable snapshot — never Catalog or SearchResult.
  */
 
 import { createLifecycleView } from './states.js';
@@ -12,6 +12,8 @@ import { createLifecycleView } from './states.js';
  *   lifecycle: string,
  *   errorMessage: string | null,
  *   rowCount: number | null,
+ *   resultCount: number | null,
+ *   searchText: string,
  * }} snapshot
  */
 export function render(root, snapshot) {

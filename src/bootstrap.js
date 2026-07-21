@@ -1,10 +1,8 @@
 /**
- * Bootstrap — Version 1.0 (Milestone 6)
+ * Bootstrap — Version 1.0 (Milestone 7)
  * Composes the application and starts it exactly once.
- * Hosts decide when to call start() and supply host-specific config
- * (for example publicSource).
  * Orchestrates lifecycle; contains no transport, validation, transform,
- * or Catalog implementation bodies.
+ * Catalog, or Search implementation bodies.
  */
 
 import { getConfig } from './config/config.js';
@@ -19,6 +17,8 @@ import {
 } from './schema/validate.js';
 import { transformRowsToEntries } from './domain/transform.js';
 import { createCatalog } from './catalog/catalog.js';
+import { searchCatalog } from './search/search.js';
+import { bind } from './interaction/interaction.js';
 import { render } from './render/render.js';
 
 let hasStarted = false;
@@ -87,12 +87,17 @@ async function loadPublic(config, state) {
     return;
   }
 
+  const searchText = '';
+  const searchResult = searchCatalog(catalog, { text: searchText });
+
   if (catalog.size === 0) {
     state.setEmpty({
       rows,
       validationResult: validation,
       entries,
       catalog,
+      searchResult,
+      searchText,
     });
     return;
   }
@@ -102,15 +107,15 @@ async function loadPublic(config, state) {
     validationResult: validation,
     entries,
     catalog,
+    searchResult,
+    searchText,
   });
 }
 
 /**
  * Start the directory application once.
- * Modifies only the mount-root subtree when the host contract is satisfied.
  *
  * @param {{ mountSelector?: string, publicSource?: string }} [hostOptions]
- *        Host-supplied overrides. Demo / WordPress provide publicSource.
  */
 export function start(hostOptions = {}) {
   if (hasStarted) {
@@ -139,6 +144,12 @@ export function start(hostOptions = {}) {
 
   state.subscribe(renderSnapshot);
   renderSnapshot(state.getSnapshot());
+
+  bind(mount.root, {
+    onSearchInput(value) {
+      state.setSearchText(value);
+    },
+  });
 
   loadPublic(config, state).catch((failure) => {
     report(failure, state);
