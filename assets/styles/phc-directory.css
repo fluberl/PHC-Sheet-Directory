@@ -1,6 +1,7 @@
 /**
- * PHC Directory styles — Version 1.0 (Milestone 1)
+ * PHC Directory styles — Version 1.0 (Milestone 2)
  * All rules are scoped under the mount root to avoid WordPress / Thrive conflicts.
+ * No assumptions about future alternating card layouts.
  */
 
 #phc-cpd-directory {
@@ -18,8 +19,22 @@
   box-sizing: border-box;
 }
 
+#phc-cpd-directory .phc-directory {
+  display: block;
+  width: 100%;
+}
+
+#phc-cpd-directory .phc-directory__lifecycle {
+  display: block;
+  width: 100%;
+}
+
 #phc-cpd-directory .phc-directory__status {
   margin: 0;
   padding: 1.25rem 0;
   font-size: 1.125rem;
+}
+
+#phc-cpd-directory .phc-directory__status--error {
+  color: #8b1e1e;
 }

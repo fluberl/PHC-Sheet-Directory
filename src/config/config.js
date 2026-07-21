@@ -1,5 +1,5 @@
 /**
- * Configuration — Version 1.0 (Milestone 1)
+ * Configuration — Version 1.0 (Milestone 2)
  * Declares this directory instance. No data or domain knowledge.
  */
 
