@@ -1,7 +1,7 @@
 /**
- * Application State — Version 1.0 (Milestone 8)
- * Retains Catalog, SearchResult, record accessors, and rendering snapshot.
- * Does not retain raw PUBLIC rows on successful load.
+ * Application State — Version 1.0 (Milestone 9)
+ * Retains Catalog, SearchResult, record accessors, optional result projector,
+ * and rendering snapshot. Does not retain raw PUBLIC rows on successful load.
  */
 
 import {
@@ -15,16 +15,12 @@ import {
 /**
  * @typedef {'loading' | 'empty' | 'ready' | 'error'} Lifecycle
  * @typedef {{
- *   id: string,
- *   title: string,
- * }} ResultProjection
- * @typedef {{
  *   lifecycle: Lifecycle,
  *   errorMessage: string | null,
  *   rowCount: number | null,
  *   resultCount: number | null,
  *   searchText: string,
- *   results: readonly ResultProjection[],
+ *   results: readonly unknown[],
  * }} StateSnapshot
  *
  * @typedef {{
@@ -38,6 +34,10 @@ import {
  * }} ValidationResult
  *
  * @typedef {import('../domain/accessors.js').RecordAccessors} RecordAccessors
+ * @typedef {(
+ *   searchResult: import('../search/result.js').SearchResult,
+ *   accessors: RecordAccessors,
+ * ) => readonly unknown[]} ResultProjector
  */
 
 /**
@@ -110,6 +110,9 @@ function createStateApi() {
   /** @type {RecordAccessors | null} */
   let recordAccessors = null;
 
+  /** @type {ResultProjector | null} */
+  let projectResults = null;
+
   /** @type {Set<(snapshot: StateSnapshot) => void>} */
   const listeners = new Set();
 
@@ -131,9 +134,13 @@ function createStateApi() {
   /**
    * @param {import('../search/result.js').SearchResult} nextSearchResult
    * @param {RecordAccessors} accessors
-   * @returns {readonly ResultProjection[]}
+   * @returns {readonly unknown[]}
    */
   function buildResults(nextSearchResult, accessors) {
+    if (typeof projectResults === 'function') {
+      return projectResults(nextSearchResult, accessors);
+    }
+
     return projectIdTitleResults(nextSearchResult, accessors);
   }
 
@@ -180,6 +187,7 @@ function createStateApi() {
       catalog = null;
       searchResult = null;
       recordAccessors = null;
+      projectResults = null;
       snapshot = Object.freeze({
         lifecycle: 'loading',
         errorMessage: null,
@@ -192,6 +200,10 @@ function createStateApi() {
     setEmpty(details) {
       const text = normalizeSearchText(details.searchText ?? '');
       const accessors = details.recordAccessors;
+      projectResults =
+        typeof details.projectResults === 'function'
+          ? details.projectResults
+          : null;
       const results = buildResults(details.searchResult, accessors);
 
       acquiredRows = null;
@@ -216,6 +228,10 @@ function createStateApi() {
     setReady(details) {
       const text = normalizeSearchText(details.searchText ?? '');
       const accessors = details.recordAccessors;
+      projectResults =
+        typeof details.projectResults === 'function'
+          ? details.projectResults
+          : null;
       const results = buildResults(details.searchResult, accessors);
 
       acquiredRows = null;
@@ -265,6 +281,7 @@ function createStateApi() {
       catalog = null;
       searchResult = null;
       recordAccessors = null;
+      projectResults = null;
       snapshot = Object.freeze({
         lifecycle: 'error',
         errorMessage: details.message,
@@ -283,6 +300,7 @@ function createStateApi() {
       catalog = null;
       searchResult = null;
       recordAccessors = null;
+      projectResults = null;
       snapshot = Object.freeze({
         lifecycle: 'error',
         errorMessage: details.message,
@@ -301,6 +319,7 @@ function createStateApi() {
       catalog = null;
       searchResult = null;
       recordAccessors = null;
+      projectResults = null;
       snapshot = Object.freeze({
         lifecycle: 'error',
         errorMessage: details.message,
@@ -317,6 +336,7 @@ function createStateApi() {
       catalog = null;
       searchResult = null;
       recordAccessors = null;
+      projectResults = null;
       snapshot = Object.freeze({
         lifecycle: 'error',
         errorMessage: message,

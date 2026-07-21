@@ -1,5 +1,5 @@
 /**
- * Architecture verification — Milestone 8
+ * Architecture verification — Milestone 9
  * Structural checks (imports/exports/APIs), not comment sniffing.
  */
 
@@ -89,26 +89,77 @@ assert(
   'SearchResult keys must be size + getAll only',
 );
 
+const genericFiles = [
+  'src/render/render.js',
+  'src/render/states.js',
+  'src/catalog/catalog.js',
+  'src/search/search.js',
+  'src/search/result.js',
+  'src/domain/accessors.js',
+  'src/domain/entry.js',
+  'src/domain/transform.js',
+  'src/state/state.js',
+];
+
+for (const file of genericFiles) {
+  const src = read(file);
+  assert(
+    !/specializations\/cpd/.test(src),
+    `${file} must not import CPD specialization`,
+  );
+  assert(!/map-public-row/.test(src), `${file} must not import PUBLIC mapper`);
+  assert(
+    !/Course information and registration|CPD hours|Also listed under|CPD offerings/.test(
+      src,
+    ),
+    `${file} must not contain CPD presentation labels`,
+  );
+}
+
 const renderFiles = ['src/render/render.js', 'src/render/states.js'];
 for (const file of renderFiles) {
   const src = read(file);
   assert(!/from '\.\.\/catalog\//.test(src), `${file} must not import catalog`);
   assert(!/from '\.\.\/search\//.test(src), `${file} must not import search`);
-  assert(!/specializations\/cpd/.test(src), `${file} must not import CPD`);
   assert(!/data\/source/.test(src), `${file} must not import data source`);
-  assert(!/map-public-row/.test(src), `${file} must not import PUBLIC mapper`);
+  assert(
+    !/phc-directory__card/.test(src),
+    `${file} must not own CPD card markup classes`,
+  );
 }
 
-const catalogSrc = read('src/catalog/catalog.js');
+const presentationSrc = read('src/specializations/cpd/presentation.js');
 assert(
-  !/specializations\/cpd/.test(catalogSrc),
-  'Catalog must not import CPD specialization',
+  !/map-public-row|PUBLIC_COLUMNS|Anbietertyp|Vollständiger Titel/.test(
+    presentationSrc,
+  ),
+  'Presentation projection must not read PUBLIC headings or mapper',
+);
+assert(
+  !/innerHTML|insertAdjacentHTML/.test(presentationSrc),
+  'Presentation projection must not build HTML strings',
 );
 
-const searchSrc = read('src/search/search.js');
+const cardsSrc = read('src/specializations/cpd/render-cards.js');
 assert(
-  !/specializations\/cpd/.test(searchSrc),
-  'Search must not import CPD specialization',
+  !/map-public-row|PUBLIC_COLUMNS|Anbietertyp|Vollständiger Titel/.test(cardsSrc),
+  'Card renderer must not read PUBLIC headings or mapper',
+);
+assert(
+  !/innerHTML|insertAdjacentHTML/.test(cardsSrc),
+  'Card renderer must not use unsafe HTML insertion',
+);
+assert(
+  !/provider-type|Provider type|Anbietertyp/.test(cardsSrc),
+  'Card renderer must not present provider type',
+);
+assert(
+  cardsSrc.includes('CPD hours'),
+  'Card renderer must use CPD hours wording',
+);
+assert(
+  !cardsSrc.includes('Recognition'),
+  'Card renderer must not use Recognition wording',
 );
 
 const mapperSrc = read(MAPPER_REL);
@@ -150,12 +201,18 @@ for (const file of productionJs) {
 
 const statesSrc = read('src/render/states.js');
 assert(
-  !/phc-directory__card/.test(statesSrc),
-  'No course card UI class expected in Milestone 8',
+  !/data-phc-filter/.test(statesSrc),
+  'No filtering UI expected in Milestone 9',
+);
+
+const cssSrc = read('assets/styles/phc-directory.css');
+assert(
+  cssSrc.includes('#phc-cpd-directory'),
+  'Styles must remain scoped to the mount root',
 );
 assert(
-  !/data-phc-filter/.test(statesSrc),
-  'No filtering UI expected in Milestone 8',
+  !/(^|\n)\s*(body|h1|p|ul|a)\s*\{/.test(cssSrc),
+  'Styles must not use unscoped broad element selectors',
 );
 
 console.log('Architecture verification passed.');

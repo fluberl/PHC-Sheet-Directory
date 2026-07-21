@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400" viewBox="0 0 640 400" role="img" aria-label="Course photo placeholder">
+  <rect width="640" height="400" fill="#d9e2ec"/>
+  <rect x="40" y="40" width="560" height="320" fill="#bcccdc"/>
+  <text x="320" y="205" text-anchor="middle" font-family="Georgia, serif" font-size="28" fill="#334e68">Course photo</text>
+</svg>

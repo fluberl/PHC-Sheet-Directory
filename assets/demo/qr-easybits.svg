@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120" role="img" aria-label="QR code placeholder">
+  <rect width="120" height="120" fill="#fff" stroke="#111" stroke-width="4"/>
+  <rect x="16" y="16" width="28" height="28" fill="#111"/>
+  <rect x="76" y="16" width="28" height="28" fill="#111"/>
+  <rect x="16" y="76" width="28" height="28" fill="#111"/>
+  <rect x="52" y="52" width="16" height="16" fill="#111"/>
+  <rect x="76" y="76" width="12" height="12" fill="#111"/>
+  <rect x="96" y="76" width="8" height="8" fill="#111"/>
+  <rect x="76" y="96" width="8" height="8" fill="#111"/>
+</svg>

@@ -1,6 +1,6 @@
 /**
- * Bootstrap — Version 1.0 (Milestone 8)
- * Orchestrates PUBLIC acquisition → CPD mapping → Catalog → Search → State.
+ * Bootstrap — Version 1.0 (Milestone 9)
+ * Orchestrates PUBLIC → CPD domain → Catalog → Search → card projection → State.
  */
 
 import { getConfig } from './config/config.js';
@@ -17,7 +17,10 @@ import { render } from './render/render.js';
 import {
   cpdRecordAccessors,
   mapPublicRowsToCpdCourses,
+  projectCpdSearchResultToCards,
 } from './specializations/cpd/index.js';
+import { cpdDirectoryCopy } from './specializations/cpd/copy.js';
+import { createCpdCourseCardList } from './specializations/cpd/render-cards.js';
 
 let hasStarted = false;
 
@@ -90,6 +93,9 @@ async function loadPublic(config, state) {
     cpdRecordAccessors,
   );
 
+  const projectResults = (nextSearchResult) =>
+    projectCpdSearchResultToCards(nextSearchResult);
+
   if (catalog.size === 0) {
     state.setEmpty({
       validationResult: transport,
@@ -98,6 +104,7 @@ async function loadPublic(config, state) {
       searchResult,
       searchText,
       recordAccessors: cpdRecordAccessors,
+      projectResults,
     });
     return;
   }
@@ -109,6 +116,7 @@ async function loadPublic(config, state) {
     searchResult,
     searchText,
     recordAccessors: cpdRecordAccessors,
+    projectResults,
   });
 }
 
@@ -137,7 +145,17 @@ export function start(hostOptions = {}) {
   const state = createState();
 
   const renderSnapshot = (snapshot) => {
-    render(mount.root, snapshot);
+    render(mount.root, snapshot, {
+      copy: cpdDirectoryCopy,
+      renderResults(current) {
+        const cards = Array.isArray(current.results) ? current.results : [];
+        return createCpdCourseCardList(
+          /** @type {import('./specializations/cpd/presentation.js').CpdCourseCardModel[]} */ (
+            cards
+          ),
+        );
+      },
+    });
   };
 
   state.subscribe(renderSnapshot);

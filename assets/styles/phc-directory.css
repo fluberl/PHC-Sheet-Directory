@@ -1,7 +1,6 @@
 /**
- * PHC Directory styles — Version 1.0 (Milestone 3)
+ * PHC Directory styles — Version 1.0 (Milestone 9)
  * All rules are scoped under the mount root to avoid WordPress / Thrive conflicts.
- * No assumptions about future alternating card layouts.
  */
 
 #phc-cpd-directory {
@@ -22,6 +21,7 @@
 #phc-cpd-directory .phc-directory {
   display: block;
   width: 100%;
+  max-width: 52rem;
 }
 
 #phc-cpd-directory .phc-directory__lifecycle {
@@ -32,7 +32,7 @@
 #phc-cpd-directory .phc-directory__status {
   margin: 0;
   padding: 1.25rem 0;
-  font-size: 1.125rem;
+  font-size: 1.0625rem;
 }
 
 #phc-cpd-directory .phc-directory__status-title,
@@ -40,16 +40,12 @@
   margin: 0;
 }
 
-#phc-cpd-directory .phc-directory__status-detail {
-  margin-top: 0.35rem;
-}
-
 #phc-cpd-directory .phc-directory__status--error {
   color: #8b1e1e;
 }
 
 #phc-cpd-directory .phc-directory__search {
-  margin: 1rem 0 0.75rem;
+  margin: 0 0 1rem;
 }
 
 #phc-cpd-directory .phc-directory__search-label {
@@ -63,16 +59,217 @@
   width: 100%;
   max-width: 28rem;
   margin: 0;
-  padding: 0.5rem 0.65rem;
-  border: 1px solid #8a8a8a;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid #6e6e6e;
   border-radius: 0;
   background: #fff;
   color: inherit;
   font: inherit;
 }
 
-#phc-cpd-directory .phc-directory__diagnostics {
-  margin-top: 0.75rem;
+#phc-cpd-directory .phc-directory__search-input:focus {
+  outline: 2px solid #1a1a1a;
+  outline-offset: 2px;
+}
+
+#phc-cpd-directory .phc-directory__result-status {
+  margin: 0 0 1rem;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+#phc-cpd-directory .phc-directory__no-results {
+  margin: 0.5rem 0 0;
+  padding: 0.85rem 0;
+}
+
+#phc-cpd-directory .phc-directory__no-results-text {
+  margin: 0;
+}
+
+#phc-cpd-directory .phc-directory__results {
+  margin: 0;
+  padding: 0;
+}
+
+#phc-cpd-directory .phc-directory__results-heading {
+  margin: 0 0 0.85rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+#phc-cpd-directory .phc-directory__card-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+#phc-cpd-directory .phc-directory__card-item {
+  margin: 0;
+  padding: 0;
+}
+
+#phc-cpd-directory .phc-directory__card {
+  margin: 0;
+  padding: 1.15rem 0 1.35rem;
+  border-top: 1px solid #cfcfcf;
+}
+
+#phc-cpd-directory .phc-directory__card-provider-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0 0 0.55rem;
+}
+
+#phc-cpd-directory .phc-directory__card-provider-logo {
+  display: block;
+  width: 2.5rem;
+  height: 2.5rem;
+  object-fit: contain;
+  flex: 0 0 auto;
+}
+
+#phc-cpd-directory .phc-directory__card-provider-name {
+  margin: 0;
+  font-size: 0.98rem;
+}
+
+#phc-cpd-directory .phc-directory__card-title {
+  margin: 0 0 0.85rem;
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+#phc-cpd-directory .phc-directory__card-media-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1rem 1.25rem;
+  align-items: start;
+  margin: 0 0 0.85rem;
+}
+
+#phc-cpd-directory .phc-directory__card-media,
+#phc-cpd-directory .phc-directory__card-description {
+  margin: 0;
+  min-width: 0;
+}
+
+/*
+ * DOM order is always: photo, then description (stable reading order).
+ * Desktop visual alternation uses grid column placement only — never `order`.
+ */
+#phc-cpd-directory .phc-directory__card-media {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+#phc-cpd-directory .phc-directory__card-description {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+/* Even cards: description left, photo right (visual only). */
+#phc-cpd-directory .phc-directory__card-item:nth-child(even) .phc-directory__card-media {
+  grid-column: 2;
+}
+
+#phc-cpd-directory .phc-directory__card-item:nth-child(even) .phc-directory__card-description {
+  grid-column: 1;
+}
+
+#phc-cpd-directory .phc-directory__card-photo,
+#phc-cpd-directory .phc-directory__card-photo-placeholder {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 8 / 5;
+  object-fit: cover;
+  background: #e4e4e4;
+}
+
+#phc-cpd-directory .phc-directory__card-description-text {
+  margin: 0;
+  max-width: 40rem;
+}
+
+#phc-cpd-directory .phc-directory__card-meta {
+  margin: 0.75rem 0 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem 1.25rem;
+}
+
+#phc-cpd-directory .phc-directory__card-meta-item {
+  margin: 0;
+  min-width: 0;
+}
+
+#phc-cpd-directory .phc-directory__card-meta-term {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #444;
+}
+
+#phc-cpd-directory .phc-directory__card-meta-value {
+  margin: 0.1rem 0 0;
+}
+
+#phc-cpd-directory .phc-directory__card-footer {
+  margin-top: 1rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+#phc-cpd-directory .phc-directory__card-actions {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+#phc-cpd-directory .phc-directory__card-link {
+  display: inline-block;
+  margin: 0;
+}
+
+#phc-cpd-directory .phc-directory__card-id {
+  margin: 0.45rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.3;
+  color: #888;
+  font-weight: 400;
+}
+
+#phc-cpd-directory .phc-directory__card-qr {
+  margin: 0;
+  flex: 0 0 auto;
+}
+
+#phc-cpd-directory .phc-directory__card-qr-image {
+  display: block;
+  width: 5.5rem;
+  height: 5.5rem;
+  object-fit: contain;
+  background: #fff;
+}
+
+#phc-cpd-directory .phc-directory__card-link,
+#phc-cpd-directory .phc-directory__card-provider-link {
+  color: #0b3d6e;
+  text-decoration: underline;
+}
+
+#phc-cpd-directory .phc-directory__card-link:focus,
+#phc-cpd-directory .phc-directory__card-provider-link:focus {
+  outline: 2px solid #1a1a1a;
+  outline-offset: 2px;
 }
 
 #phc-cpd-directory .phc-directory__result-list {
@@ -84,7 +281,39 @@
   margin: 0.35rem 0;
 }
 
-#phc-cpd-directory .phc-directory__result-id {
-  font-family: ui-monospace, Menlo, monospace;
-  font-size: 0.95em;
+@media (max-width: 40rem) {
+  #phc-cpd-directory .phc-directory {
+    max-width: none;
+  }
+
+  #phc-cpd-directory .phc-directory__card-media-row {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  /* Mobile: no alternation — one column in stable DOM order (photo, then text). */
+  #phc-cpd-directory .phc-directory__card-media,
+  #phc-cpd-directory .phc-directory__card-item:nth-child(even) .phc-directory__card-media {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  #phc-cpd-directory .phc-directory__card-description,
+  #phc-cpd-directory .phc-directory__card-item:nth-child(even) .phc-directory__card-description {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  #phc-cpd-directory .phc-directory__card-meta {
+    grid-template-columns: 1fr;
+    gap: 0.55rem;
+  }
+
+  #phc-cpd-directory .phc-directory__card-footer {
+    flex-wrap: wrap;
+  }
+
+  #phc-cpd-directory .phc-directory__card-qr {
+    margin-left: auto;
+  }
 }
