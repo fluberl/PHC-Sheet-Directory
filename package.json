@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "demo": "python3 -m http.server 8765",
     "test": "node tests/generic-engine.test.mjs && node tests/milestone-8-cpd.test.mjs",
     "verify:architecture": "node scripts/verify-architecture.mjs",
     "verify": "npm run test && npm run verify:architecture"
