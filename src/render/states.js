@@ -41,12 +41,12 @@ export function createLifecycleView(snapshot) {
 
     const title = document.createElement('p');
     title.className = 'phc-directory__status-title';
-    title.textContent = 'PUBLIC successfully loaded';
+    title.textContent = 'Directory entries ready';
 
     const count = document.createElement('p');
     count.className = 'phc-directory__status-detail';
     const rowCount = snapshot.rowCount == null ? 0 : snapshot.rowCount;
-    count.textContent = `Number of rows received: ${rowCount}`;
+    count.textContent = `Number of entries: ${rowCount}`;
 
     status.appendChild(title);
     status.appendChild(count);

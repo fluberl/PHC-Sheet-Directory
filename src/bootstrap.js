@@ -1,9 +1,9 @@
 /**
- * Bootstrap — Version 1.0 (Milestone 4)
+ * Bootstrap — Version 1.0 (Milestone 5)
  * Composes the application and starts it exactly once.
  * Hosts decide when to call start() and supply host-specific config
  * (for example publicSource).
- * Orchestrates lifecycle; contains no transport or validation logic bodies.
+ * Orchestrates lifecycle; contains no transport, validation, or transform bodies.
  */
 
 import { getConfig } from './config/config.js';
@@ -16,6 +16,7 @@ import {
   validatePublicRows,
   summarizeValidationErrors,
 } from './schema/validate.js';
+import { transformRowsToEntries } from './domain/transform.js';
 import { render } from './render/render.js';
 
 let hasStarted = false;
@@ -47,14 +48,37 @@ async function loadPublic(config, state) {
     return;
   }
 
-  if (rows.length === 0) {
-    state.setEmpty(rows, validation);
+  let entries;
+
+  try {
+    entries = transformRowsToEntries(rows);
+  } catch (failure) {
+    const message =
+      failure instanceof Error && failure.message
+        ? failure.message
+        : 'Directory transformation failed.';
+
+    state.setTransformError({
+      rows,
+      validationResult: validation,
+      message,
+    });
+    return;
+  }
+
+  if (entries.length === 0) {
+    state.setEmpty({
+      rows,
+      validationResult: validation,
+      entries,
+    });
     return;
   }
 
   state.setReady({
     rows,
     validationResult: validation,
+    entries,
   });
 }
 

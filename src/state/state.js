@@ -1,7 +1,7 @@
 /**
- * Application State — Version 1.0 (Milestone 4)
+ * Application State — Version 1.0 (Milestone 5)
  * Owns mutable session lifecycle.
- * Retains acquired PUBLIC rows and Validation Results internally.
+ * Retains acquired PUBLIC rows, Validation Results, and Domain Entries internally.
  * Does not know about DOM, fetch, or presentation layout.
  *
  * ---------------------------------------------------------------------------
@@ -11,14 +11,16 @@
  *     { lifecycle, errorMessage, rowCount }
  *
  * - getAcquiredRows()
- *     Raw PUBLIC rows after successful acquisition:
- *       - ready / empty / schema-error → frozen array (possibly empty)
- *       - loading / transport-error → null
+ *     Raw PUBLIC rows after successful acquisition (or schema/transform error).
  *
  * - getValidationResult()
- *     Last structural Validation Result, or null when none applies
- *     (loading / transport failure before validation).
- *     Not exposed to Rendering.
+ *     Last structural Validation Result, or null before validation.
+ *
+ * - getEntries()
+ *     Transformed Domain Entries after successful transformation:
+ *       - ready → frozen non-empty array
+ *       - empty → frozen empty array
+ *       - loading / transport-error / schema-error / transform-error → null
  *
  * ValidationError.row is zero-based; user-facing messages use one-based rows.
  * ---------------------------------------------------------------------------
@@ -41,6 +43,8 @@
  *     message: string,
  *   }[],
  * }} ValidationResult
+ *
+ * @typedef {{ id: string, title: string }} DirectoryEntry
  */
 
 /**
@@ -64,15 +68,37 @@ function retainValidationResult(result) {
 }
 
 /**
+ * @param {readonly DirectoryEntry[]} entries
+ * @returns {readonly DirectoryEntry[]}
+ */
+function retainEntries(entries) {
+  return Object.freeze(entries.slice());
+}
+
+/**
  * @returns {{
  *   getSnapshot: () => StateSnapshot,
  *   getAcquiredRows: () => readonly unknown[] | null,
  *   getValidationResult: () => ValidationResult | null,
+ *   getEntries: () => readonly DirectoryEntry[] | null,
  *   subscribe: (listener: (snapshot: StateSnapshot) => void) => () => void,
  *   setLoading: () => void,
- *   setEmpty: (rows?: unknown[], validationResult?: ValidationResult) => void,
- *   setReady: (details: { rows: unknown[], validationResult: ValidationResult }) => void,
+ *   setEmpty: (details: {
+ *     rows?: unknown[],
+ *     validationResult?: ValidationResult,
+ *     entries?: DirectoryEntry[],
+ *   }) => void,
+ *   setReady: (details: {
+ *     rows: unknown[],
+ *     validationResult: ValidationResult,
+ *     entries: DirectoryEntry[],
+ *   }) => void,
  *   setSchemaError: (details: {
+ *     rows: unknown[],
+ *     validationResult: ValidationResult,
+ *     message: string,
+ *   }) => void,
+ *   setTransformError: (details: {
  *     rows: unknown[],
  *     validationResult: ValidationResult,
  *     message: string,
@@ -93,6 +119,9 @@ export function createState() {
 
   /** @type {ValidationResult | null} */
   let validationResult = null;
+
+  /** @type {readonly DirectoryEntry[] | null} */
+  let entries = null;
 
   /** @type {Set<(snapshot: StateSnapshot) => void>} */
   const listeners = new Set();
@@ -125,6 +154,10 @@ export function createState() {
       return validationResult;
     },
 
+    getEntries() {
+      return entries;
+    },
+
     subscribe(listener) {
       listeners.add(listener);
       return () => {
@@ -135,6 +168,7 @@ export function createState() {
     setLoading() {
       acquiredRows = null;
       validationResult = null;
+      entries = null;
       snapshot = Object.freeze({
         lifecycle: 'loading',
         errorMessage: null,
@@ -143,9 +177,17 @@ export function createState() {
       emit();
     },
 
-    setEmpty(rows = [], nextValidation = { valid: true, errors: [] }) {
+    setEmpty(details = {}) {
+      const rows = details.rows ?? [];
+      const nextValidation = details.validationResult ?? {
+        valid: true,
+        errors: [],
+      };
+      const nextEntries = details.entries ?? [];
+
       acquiredRows = retainRows(rows);
       validationResult = retainValidationResult(nextValidation);
+      entries = retainEntries(nextEntries);
       snapshot = Object.freeze({
         lifecycle: 'empty',
         errorMessage: null,
@@ -157,21 +199,37 @@ export function createState() {
     setReady(details) {
       acquiredRows = retainRows(details.rows);
       validationResult = retainValidationResult(details.validationResult);
+      entries = retainEntries(details.entries);
       snapshot = Object.freeze({
         lifecycle: 'ready',
         errorMessage: null,
-        rowCount: details.rows.length,
+        rowCount: details.entries.length,
       });
       emit();
     },
 
     /**
      * Structural schema validation failed after PUBLIC acquisition.
-     * Retains rows and the full Validation Result for later milestones.
      */
     setSchemaError(details) {
       acquiredRows = retainRows(details.rows);
       validationResult = retainValidationResult(details.validationResult);
+      entries = null;
+      snapshot = Object.freeze({
+        lifecycle: 'error',
+        errorMessage: details.message,
+        rowCount: null,
+      });
+      emit();
+    },
+
+    /**
+     * Domain transformation failed after successful structural validation.
+     */
+    setTransformError(details) {
+      acquiredRows = retainRows(details.rows);
+      validationResult = retainValidationResult(details.validationResult);
+      entries = null;
       snapshot = Object.freeze({
         lifecycle: 'error',
         errorMessage: details.message,
@@ -186,6 +244,7 @@ export function createState() {
     setError(message) {
       acquiredRows = null;
       validationResult = null;
+      entries = null;
       snapshot = Object.freeze({
         lifecycle: 'error',
         errorMessage: message,
