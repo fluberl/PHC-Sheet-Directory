@@ -1,7 +1,7 @@
 /**
- * Application State — Version 1.0 (Milestone 5)
+ * Application State — Version 1.0 (Milestone 6)
  * Owns mutable session lifecycle.
- * Retains acquired PUBLIC rows, Validation Results, and Domain Entries internally.
+ * Retains acquired rows, Validation Results, Domain Entries, and Catalog internally.
  * Does not know about DOM, fetch, or presentation layout.
  *
  * ---------------------------------------------------------------------------
@@ -11,18 +11,13 @@
  *     { lifecycle, errorMessage, rowCount }
  *
  * - getAcquiredRows()
- *     Raw PUBLIC rows after successful acquisition (or schema/transform error).
- *
  * - getValidationResult()
- *     Last structural Validation Result, or null before validation.
- *
  * - getEntries()
- *     Transformed Domain Entries after successful transformation:
- *       - ready → frozen non-empty array
- *       - empty → frozen empty array
- *       - loading / transport-error / schema-error / transform-error → null
- *
- * ValidationError.row is zero-based; user-facing messages use one-based rows.
+ * - getCatalog()
+ *     Catalog after successful creation:
+ *       - ready / empty → Catalog instance
+ *       - loading / transport-error / schema-error / transform-error /
+ *         catalog-error → null
  * ---------------------------------------------------------------------------
  */
 
@@ -45,6 +40,12 @@
  * }} ValidationResult
  *
  * @typedef {{ id: string, title: string }} DirectoryEntry
+ *
+ * @typedef {{
+ *   readonly size: number,
+ *   getAll: () => readonly DirectoryEntry[],
+ *   getById: (id: string) => DirectoryEntry | null,
+ * }} Catalog
  */
 
 /**
@@ -68,11 +69,11 @@ function retainValidationResult(result) {
 }
 
 /**
- * @param {readonly DirectoryEntry[]} entries
+ * @param {readonly DirectoryEntry[]} nextEntries
  * @returns {readonly DirectoryEntry[]}
  */
-function retainEntries(entries) {
-  return Object.freeze(entries.slice());
+function retainEntries(nextEntries) {
+  return Object.freeze(nextEntries.slice());
 }
 
 /**
@@ -81,17 +82,20 @@ function retainEntries(entries) {
  *   getAcquiredRows: () => readonly unknown[] | null,
  *   getValidationResult: () => ValidationResult | null,
  *   getEntries: () => readonly DirectoryEntry[] | null,
+ *   getCatalog: () => Catalog | null,
  *   subscribe: (listener: (snapshot: StateSnapshot) => void) => () => void,
  *   setLoading: () => void,
  *   setEmpty: (details: {
  *     rows?: unknown[],
  *     validationResult?: ValidationResult,
  *     entries?: DirectoryEntry[],
+ *     catalog: Catalog,
  *   }) => void,
  *   setReady: (details: {
  *     rows: unknown[],
  *     validationResult: ValidationResult,
  *     entries: DirectoryEntry[],
+ *     catalog: Catalog,
  *   }) => void,
  *   setSchemaError: (details: {
  *     rows: unknown[],
@@ -101,6 +105,12 @@ function retainEntries(entries) {
  *   setTransformError: (details: {
  *     rows: unknown[],
  *     validationResult: ValidationResult,
+ *     message: string,
+ *   }) => void,
+ *   setCatalogError: (details: {
+ *     rows: unknown[],
+ *     validationResult: ValidationResult,
+ *     entries: DirectoryEntry[],
  *     message: string,
  *   }) => void,
  *   setError: (message: string) => void,
@@ -122,6 +132,9 @@ export function createState() {
 
   /** @type {readonly DirectoryEntry[] | null} */
   let entries = null;
+
+  /** @type {Catalog | null} */
+  let catalog = null;
 
   /** @type {Set<(snapshot: StateSnapshot) => void>} */
   const listeners = new Set();
@@ -158,6 +171,10 @@ export function createState() {
       return entries;
     },
 
+    getCatalog() {
+      return catalog;
+    },
+
     subscribe(listener) {
       listeners.add(listener);
       return () => {
@@ -169,6 +186,7 @@ export function createState() {
       acquiredRows = null;
       validationResult = null;
       entries = null;
+      catalog = null;
       snapshot = Object.freeze({
         lifecycle: 'loading',
         errorMessage: null,
@@ -177,7 +195,7 @@ export function createState() {
       emit();
     },
 
-    setEmpty(details = {}) {
+    setEmpty(details) {
       const rows = details.rows ?? [];
       const nextValidation = details.validationResult ?? {
         valid: true,
@@ -188,10 +206,11 @@ export function createState() {
       acquiredRows = retainRows(rows);
       validationResult = retainValidationResult(nextValidation);
       entries = retainEntries(nextEntries);
+      catalog = details.catalog;
       snapshot = Object.freeze({
         lifecycle: 'empty',
         errorMessage: null,
-        rowCount: 0,
+        rowCount: details.catalog.size,
       });
       emit();
     },
@@ -200,21 +219,20 @@ export function createState() {
       acquiredRows = retainRows(details.rows);
       validationResult = retainValidationResult(details.validationResult);
       entries = retainEntries(details.entries);
+      catalog = details.catalog;
       snapshot = Object.freeze({
         lifecycle: 'ready',
         errorMessage: null,
-        rowCount: details.entries.length,
+        rowCount: details.catalog.size,
       });
       emit();
     },
 
-    /**
-     * Structural schema validation failed after PUBLIC acquisition.
-     */
     setSchemaError(details) {
       acquiredRows = retainRows(details.rows);
       validationResult = retainValidationResult(details.validationResult);
       entries = null;
+      catalog = null;
       snapshot = Object.freeze({
         lifecycle: 'error',
         errorMessage: details.message,
@@ -223,13 +241,11 @@ export function createState() {
       emit();
     },
 
-    /**
-     * Domain transformation failed after successful structural validation.
-     */
     setTransformError(details) {
       acquiredRows = retainRows(details.rows);
       validationResult = retainValidationResult(details.validationResult);
       entries = null;
+      catalog = null;
       snapshot = Object.freeze({
         lifecycle: 'error',
         errorMessage: details.message,
@@ -238,13 +254,24 @@ export function createState() {
       emit();
     },
 
-    /**
-     * Transport / acquisition failure (no reliable PUBLIC rows).
-     */
+    setCatalogError(details) {
+      acquiredRows = retainRows(details.rows);
+      validationResult = retainValidationResult(details.validationResult);
+      entries = retainEntries(details.entries);
+      catalog = null;
+      snapshot = Object.freeze({
+        lifecycle: 'error',
+        errorMessage: details.message,
+        rowCount: null,
+      });
+      emit();
+    },
+
     setError(message) {
       acquiredRows = null;
       validationResult = null;
       entries = null;
+      catalog = null;
       snapshot = Object.freeze({
         lifecycle: 'error',
         errorMessage: message,

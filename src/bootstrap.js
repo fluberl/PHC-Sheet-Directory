@@ -1,9 +1,10 @@
 /**
- * Bootstrap — Version 1.0 (Milestone 5)
+ * Bootstrap — Version 1.0 (Milestone 6)
  * Composes the application and starts it exactly once.
  * Hosts decide when to call start() and supply host-specific config
  * (for example publicSource).
- * Orchestrates lifecycle; contains no transport, validation, or transform bodies.
+ * Orchestrates lifecycle; contains no transport, validation, transform,
+ * or Catalog implementation bodies.
  */
 
 import { getConfig } from './config/config.js';
@@ -17,6 +18,7 @@ import {
   summarizeValidationErrors,
 } from './schema/validate.js';
 import { transformRowsToEntries } from './domain/transform.js';
+import { createCatalog } from './catalog/catalog.js';
 import { render } from './render/render.js';
 
 let hasStarted = false;
@@ -66,11 +68,31 @@ async function loadPublic(config, state) {
     return;
   }
 
-  if (entries.length === 0) {
+  let catalog;
+
+  try {
+    catalog = createCatalog(entries);
+  } catch (failure) {
+    const message =
+      failure instanceof Error && failure.message
+        ? failure.message
+        : 'Catalog creation failed.';
+
+    state.setCatalogError({
+      rows,
+      validationResult: validation,
+      entries,
+      message,
+    });
+    return;
+  }
+
+  if (catalog.size === 0) {
     state.setEmpty({
       rows,
       validationResult: validation,
       entries,
+      catalog,
     });
     return;
   }
@@ -79,6 +101,7 @@ async function loadPublic(config, state) {
     rows,
     validationResult: validation,
     entries,
+    catalog,
   });
 }
 
