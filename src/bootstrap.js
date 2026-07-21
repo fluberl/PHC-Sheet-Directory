@@ -1,9 +1,9 @@
 /**
- * Bootstrap — Version 1.0 (Milestone 3)
+ * Bootstrap — Version 1.0 (Milestone 4)
  * Composes the application and starts it exactly once.
  * Hosts decide when to call start() and supply host-specific config
  * (for example publicSource).
- * Orchestrates lifecycle; contains no transport logic.
+ * Orchestrates lifecycle; contains no transport or validation logic bodies.
  */
 
 import { getConfig } from './config/config.js';
@@ -11,6 +11,11 @@ import { getMountRoot } from './host/mount.js';
 import { createState } from './state/state.js';
 import { report } from './errors/errors.js';
 import { fetchPublic } from './data/source.js';
+import { getDirectorySchema } from './schema/contract.js';
+import {
+  validatePublicRows,
+  summarizeValidationErrors,
+} from './schema/validate.js';
 import { render } from './render/render.js';
 
 let hasStarted = false;
@@ -30,13 +35,27 @@ async function loadPublic(config, state) {
   }
 
   const rows = result.payload;
+  const schema = getDirectorySchema();
+  const validation = validatePublicRows(rows, schema);
 
-  if (rows.length === 0) {
-    state.setEmpty(rows);
+  if (!validation.valid) {
+    state.setSchemaError({
+      rows,
+      validationResult: validation,
+      message: summarizeValidationErrors(validation),
+    });
     return;
   }
 
-  state.setReady({ rows });
+  if (rows.length === 0) {
+    state.setEmpty(rows, validation);
+    return;
+  }
+
+  state.setReady({
+    rows,
+    validationResult: validation,
+  });
 }
 
 /**

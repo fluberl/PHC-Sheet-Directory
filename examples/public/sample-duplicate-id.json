@@ -1,0 +1,14 @@
+[
+  {
+    "id": "REC-001",
+    "title": "First entry"
+  },
+  {
+    "id": "REC-002",
+    "title": "Second entry"
+  },
+  {
+    "id": "REC-001",
+    "title": "Duplicate of first id"
+  }
+]

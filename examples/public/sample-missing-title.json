@@ -1,0 +1,13 @@
+[
+  {
+    "id": "REC-001",
+    "title": "Entry with missing title companion"
+  },
+  {
+    "id": "REC-002"
+  },
+  {
+    "id": "REC-003",
+    "title": "Another valid title"
+  }
+]

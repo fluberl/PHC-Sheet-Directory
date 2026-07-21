@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>PHC CPD Directory — Demo (Milestone 3)</title>
+    <title>PHC CPD Directory — Demo (Milestone 4)</title>
     <link rel="stylesheet" href="../assets/styles/phc-directory.css" />
   </head>
   <body>
@@ -24,10 +24,13 @@
     <script type="module">
       import { start } from '../src/bootstrap.js';
 
-      // Host resolves the sample PUBLIC URL relative to this page.
-      // Works with: python3 -m http.server 8765 --directory .
+      // Switch sample with this one line:
+      // sample-public.json | sample-missing-title.json |
+      // sample-duplicate-id.json | sample-invalid-type.json
+      const PUBLIC_SAMPLE = 'sample-public.json';
+
       const publicSource = new URL(
-        '../examples/public/sample-public.json',
+        `../examples/public/${PUBLIC_SAMPLE}`,
         import.meta.url,
       ).href;
 
