@@ -12,10 +12,10 @@ Milestone documents live under [`docs/milestones/`](./).
 
 ## Current Stage
 
-**Milestone 13 — WordPress Page Integration** *(implemented, pending commit)*
+**Milestone 14 — Localization, Swiss Dates and PHC Taxonomy** *(completed)*
 
-Self-contained WordPress plugin shortcode mounts the unchanged Milestone 12
-directory into `#phc-cpd-directory` with conditional asset loading.
+German (de-CH) UI, Swiss date formatting, PHC category taxonomy, and
+multi-category filtering on the unchanged WordPress + Sheets architecture.
 
 ---
 
@@ -35,7 +35,8 @@ directory into `#phc-cpd-directory` with conditional asset loading.
 | M10 | Completed | Discovery through taxonomy, search and category filtering | [M10-discovery.md](./M10-discovery.md) |
 | M11 | Completed | Multiple display modes over one filtered dataset | [M11-multiple-display-modes.md](./M11-multiple-display-modes.md) |
 | M12 | Completed | Live Google Sheets PUBLIC datasource | [M12-google-sheets-integration.md](./M12-google-sheets-integration.md) |
-| M13 | Implemented (pending commit) | WordPress plugin shortcode host integration | [M13-wordpress-integration.md](./M13-wordpress-integration.md) |
+| M13 | Completed | WordPress plugin shortcode host integration | [M13-wordpress-integration.md](./M13-wordpress-integration.md) |
+| M14 | Completed | German localization, Swiss dates, PHC taxonomy, multi-category filtering | [M14-localization-and-taxonomy.md](./M14-localization-and-taxonomy.md) |
 
 ---
 
