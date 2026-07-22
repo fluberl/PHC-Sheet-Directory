@@ -5,6 +5,8 @@
 export { createCpdCourse } from './course.js';
 export {
   coerceNextStartIso,
+  formatSwissDateLong,
+  formatSwissDateShort,
   normalizeText,
   normalizeCpdHours,
   normalizePublicUrl,
@@ -19,6 +21,7 @@ export {
 export { interpretPublishedFlag, isPublishedFlagValue } from './published.js';
 export {
   buildCpdSearchableText,
+  collectCpdCategoryIds,
   cpdRecordAccessors,
 } from './accessors.js';
 export { cpdDirectoryCopy } from './copy.js';

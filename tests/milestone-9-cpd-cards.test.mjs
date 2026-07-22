@@ -348,9 +348,9 @@ const publicRows = JSON.parse(
     );
     assert(
       findByClass(first, 'phc-directory__card-meta-term').some(
-        (node) => node.textContent === 'CPD hours',
+        (node) => node.textContent === 'CPD-Stunden',
       ),
-      'CPD hours label',
+      'CPD-Stunden label',
     );
     assert(
       !findByClass(first, 'phc-directory__card-meta-term').some(
@@ -416,7 +416,7 @@ const publicRows = JSON.parse(
       },
       { copy: cpdDirectoryCopy },
     );
-    assert(loading.textContent.includes('Loading CPD offerings'), 'loading copy');
+    assert(loading.textContent.includes('Weiterbildungen werden geladen'), 'loading copy');
 
     const empty = createLifecycleView(
       {
@@ -430,7 +430,7 @@ const publicRows = JSON.parse(
       { copy: cpdDirectoryCopy },
     );
     assert(
-      empty.textContent.includes('No CPD offerings are currently available.'),
+      empty.textContent.includes('Zurzeit sind keine Weiterbildungen verfügbar.'),
       'empty catalog copy',
     );
 
@@ -446,7 +446,7 @@ const publicRows = JSON.parse(
       },
       { copy: cpdDirectoryCopy },
     );
-    assert(noResults.textContent.includes('No CPD courses match'), 'no-results copy');
+    assert(noResults.textContent.includes('Keine Weiterbildung entspricht'), 'no-results copy');
     assert(!noResults.textContent.includes('Loaded (Catalog)'), 'no diagnostic loaded');
 
     const courses = mapPublicRowsToCpdCourses(publicRows);

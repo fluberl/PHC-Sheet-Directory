@@ -50,20 +50,20 @@
 
 /** @type {Readonly<DirectoryCopy>} */
 export const defaultDirectoryCopy = Object.freeze({
-  loading: 'Loading…',
-  empty: 'No entries are available.',
-  searchLabel: 'Search',
-  categoryLabel: 'Category',
-  allCategoriesLabel: 'All categories',
-  viewLabel: 'View',
-  resultStatusNone: 'No matching results',
-  resultStatusOne: '1 result',
+  loading: 'Wird geladen…',
+  empty: 'Keine Einträge verfügbar.',
+  searchLabel: 'Suche',
+  categoryLabel: 'Kategorie',
+  allCategoriesLabel: 'Alle Kategorien',
+  viewLabel: 'Ansicht',
+  resultStatusNone: 'Keine passenden Ergebnisse',
+  resultStatusOne: '1 Ergebnis',
   resultStatusMany(count) {
-    return `${count} results`;
+    return `${count} Ergebnisse`;
   },
   noResults:
-    'No results match your current search and category. Try another search term, choose another category, or clear the filters.',
-  errorFallback: 'Something went wrong while loading the directory.',
+    'Keine Ergebnisse entsprechen Ihrer aktuellen Suche und Kategorie. Versuchen Sie einen anderen Suchbegriff, wählen Sie eine andere Kategorie oder setzen Sie die Filter zurück.',
+  errorFallback: 'Beim Laden des Verzeichnisses ist etwas schiefgelaufen.',
 });
 
 /**

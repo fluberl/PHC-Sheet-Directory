@@ -1,7 +1,10 @@
 /**
- * CPD chronological list rendering — Milestone 11
+ * CPD chronological list rendering — Milestone 14
  * Compact schedule view from card display models only.
  */
+
+import { cpdDirectoryCopy } from './copy.js';
+import { formatSwissDateShort } from './normalize.js';
 
 /**
  * @typedef {import('./presentation.js').CpdCourseCardModel} CpdCourseCardModel
@@ -26,7 +29,7 @@ function el(tag, className) {
  */
 function formatCredits(hours) {
   if (typeof hours !== 'number' || !Number.isFinite(hours)) {
-    return '—';
+    return cpdDirectoryCopy.emptyCell;
   }
   return Number.isInteger(hours) ? String(hours) : String(hours);
 }
@@ -36,7 +39,9 @@ function formatCredits(hours) {
  * @returns {string}
  */
 function displayOrDash(value) {
-  return typeof value === 'string' && value.trim() !== '' ? value : '—';
+  return typeof value === 'string' && value.trim() !== ''
+    ? value
+    : cpdDirectoryCopy.emptyCell;
 }
 
 /**
@@ -73,7 +78,7 @@ export function createCpdChronologicalList(cards) {
 
   const heading = el('h2', 'phc-directory__results-heading');
   heading.id = 'phc-directory-results-heading';
-  heading.textContent = 'CPD schedule';
+  heading.textContent = cpdDirectoryCopy.scheduleHeading;
   section.appendChild(heading);
 
   const wrapper = el('div', 'phc-directory__schedule-wrap');
@@ -82,7 +87,7 @@ export function createCpdChronologicalList(cards) {
 
   const thead = el('thead');
   const headerRow = el('tr');
-  ['Date', 'Course', 'PHC-CPD Number', 'Category', 'CPD Credits'].forEach((label) => {
+  cpdDirectoryCopy.scheduleColumns.forEach((label) => {
     const th = el('th', 'phc-directory__schedule-heading');
     th.setAttribute('scope', 'col');
     th.textContent = label;
@@ -101,10 +106,12 @@ export function createCpdChronologicalList(cards) {
     if (typeof nextStart === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(nextStart)) {
       const time = el('time');
       time.setAttribute('datetime', nextStart);
-      time.textContent = nextStart;
+      time.textContent = formatSwissDateShort(nextStart);
       dateCell.appendChild(time);
     } else {
-      dateCell.textContent = displayOrDash(nextStart);
+      dateCell.textContent = displayOrDash(
+        typeof nextStart === 'string' ? formatSwissDateShort(nextStart) : nextStart,
+      );
     }
     row.appendChild(dateCell);
     row.appendChild(createCourseCell(card));

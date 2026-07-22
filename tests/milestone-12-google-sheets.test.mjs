@@ -151,7 +151,7 @@ Provider C,fuehren-und-folgen.ch,https://drive.google.com/open?id=abc123,PHC-CPD
     const failed = await fetchPublic({ publicSource: 'https://example.test/network-fail' });
     assert(failed.ok === false, 'friendly failure without cache');
     assert(
-      String(failed.message).includes('could not be loaded'),
+      String(failed.message).includes('konnte derzeit nicht geladen werden'),
       'friendly message',
     );
   } finally {

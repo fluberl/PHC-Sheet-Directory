@@ -1,5 +1,5 @@
 /**
- * CPD display modes — Milestone 11
+ * CPD display modes — Milestone 14
  * Presentation-only identifiers. No taxonomy or datasource knowledge.
  */
 
@@ -17,9 +17,9 @@ export const DEFAULT_CPD_VIEW_MODE = 'calendar';
 
 /** @type {readonly Readonly<CpdViewModeOption>[]} */
 export const CPD_VIEW_MODE_OPTIONS = Object.freeze([
-  Object.freeze({ id: 'calendar', label: 'Calendar Cards' }),
-  Object.freeze({ id: 'catalogue', label: 'Catalogue' }),
-  Object.freeze({ id: 'chronological', label: 'Chronological List' }),
+  Object.freeze({ id: 'calendar', label: 'Kalenderkarten' }),
+  Object.freeze({ id: 'catalogue', label: 'Katalog' }),
+  Object.freeze({ id: 'chronological', label: 'Chronologische Liste' }),
 ]);
 
 /**

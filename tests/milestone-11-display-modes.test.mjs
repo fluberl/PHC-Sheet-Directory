@@ -267,7 +267,7 @@ const catalogueCards = projectCpdSearchResultToCards(
 
   state.setSearchText('');
   assert(state.getSnapshot().viewMode === 'chronological', 'mode survives clear search');
-  assert(state.getSnapshot().resultCount === 1, 'category-only after clear search');
+  assert(state.getSnapshot().resultCount === 3, 'category-only after clear search');
 
   state.setCategoryId('');
   assert(state.getSnapshot().viewMode === 'chronological', 'mode survives clear category');
@@ -309,7 +309,7 @@ const catalogueCards = projectCpdSearchResultToCards(
     const headings = findByTag(list, 'th').map((node) => node.textContent);
     assert(
       headings.join('|') ===
-        'Date|Course|PHC-CPD Number|Category|CPD Credits',
+        'Datum|Weiterbildung|PHC-CPD-Nummer|Kategorie|CPD-Credits',
       'schedule columns',
     );
   } finally {

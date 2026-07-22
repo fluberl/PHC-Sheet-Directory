@@ -8,7 +8,7 @@
  * @param {{ setError: (message: string) => void }} stateApi
  */
 export function report(failure, stateApi) {
-  let message = 'Something went wrong while loading the directory.';
+  let message = 'Beim Laden des Verzeichnisses ist etwas schiefgelaufen.';
 
   if (typeof failure === 'string' && failure.trim() !== '') {
     message = failure.trim();

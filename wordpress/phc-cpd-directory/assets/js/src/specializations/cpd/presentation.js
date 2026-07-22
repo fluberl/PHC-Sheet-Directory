@@ -195,11 +195,17 @@ export function projectCpdCourseToCard(course) {
     }
   }
 
-  const alsoListedUnder = optionalStringList(
-    course.classification?.categories ?? [],
-  );
-  if (alsoListedUnder) {
-    classification.alsoListedUnder = alsoListedUnder;
+  const alsoListedUnderRaw = course.classification?.categories ?? [];
+  if (Array.isArray(alsoListedUnderRaw) && alsoListedUnderRaw.length > 0) {
+    const alsoListedUnder = optionalStringList(
+      alsoListedUnderRaw.map((item) => {
+        const resolved = resolvePrimaryCategory(item);
+        return resolved.label !== '' ? resolved.label : String(item);
+      }),
+    );
+    if (alsoListedUnder) {
+      classification.alsoListedUnder = alsoListedUnder;
+    }
   }
 
   if (

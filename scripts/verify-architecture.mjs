@@ -129,11 +129,11 @@ for (const file of genericFiles) {
     `${file} must not import CPD mapper/taxonomy`,
   );
   assert(
-    !/Course information and registration|CPD hours|Also listed under|CPD offerings/.test(
-      src,
-    ),
-    `${file} must not contain CPD presentation labels`,
-  );
+  !/Course information and registration|CPD hours|Also listed under|CPD offerings|Kursinformationen und Anmeldung|CPD-Stunden|Auch gelistet unter/.test(
+    src,
+  ),
+  `${file} must not contain CPD presentation labels`,
+);
   for (const id of TAXONOMY_IDS) {
     assert(
       !src.includes(id),
@@ -141,14 +141,14 @@ for (const file of genericFiles) {
     );
   }
   assert(
-    !/Lifestyle Medicine|Mental Health & Wellbeing|Women's Health/.test(src),
+    !/Lifestyle Medicine|Mental Health & Wellbeing|Women's Health|Mentale Gesundheit|Frauengesundheit/.test(src),
     `${file} must not hard-code PHC taxonomy labels`,
   );
 }
 
 const searchSrc = read('src/search/search.js');
 assert(
-  /getSearchableText|getPrimaryCategoryId/.test(searchSrc),
+  /getSearchableText|getPrimaryCategoryId|getCategoryIds/.test(searchSrc),
   'Generic search must use accessor hooks for discovery fields',
 );
 assert(
@@ -205,8 +205,8 @@ assert(
   'Card renderer must not present provider type',
 );
 assert(
-  cardsSrc.includes('CPD hours'),
-  'Card renderer must use CPD hours wording',
+  cardsSrc.includes('CPD-Stunden') || cardsSrc.includes('cpdHours'),
+  'Card renderer must use CPD-Stunden wording',
 );
 assert(
   !cardsSrc.includes('Recognition'),
@@ -260,7 +260,7 @@ assert(
   'View mode control expected in lifecycle shell',
 );
 assert(
-  !/Calendar Cards|Chronological List|catalogue/.test(statesSrc),
+  !/Calendar Cards|Chronological List|catalogue|Kalenderkarten|Chronologische Liste/.test(statesSrc),
   'Generic lifecycle shell must not hard-code CPD view labels',
 );
 assert(

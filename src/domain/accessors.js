@@ -1,5 +1,5 @@
 /**
- * Generic record accessors — Version 1.0 (Milestone 10)
+ * Generic record accessors — Version 1.0 (Milestone 14)
  * Catalog and Search read identity/title/search/category through accessors
  * so specialization shapes do not leak into generic modules.
  */
@@ -10,6 +10,7 @@
  *   getTitle: (entry: unknown) => string,
  *   getSearchableText?: (entry: unknown) => string,
  *   getPrimaryCategoryId?: (entry: unknown) => string | null,
+ *   getCategoryIds?: (entry: unknown) => readonly string[],
  * }} RecordAccessors
  */
 
@@ -19,6 +20,7 @@
  *   getTitle: (entry: unknown) => string,
  *   getSearchableText?: (entry: unknown) => string,
  *   getPrimaryCategoryId?: (entry: unknown) => string | null,
+ *   getCategoryIds?: (entry: unknown) => readonly string[],
  * }} accessors
  * @returns {Readonly<RecordAccessors>}
  */
@@ -39,6 +41,10 @@ export function createRecordAccessors(accessors) {
 
   if (typeof accessors.getPrimaryCategoryId === 'function') {
     created.getPrimaryCategoryId = accessors.getPrimaryCategoryId;
+  }
+
+  if (typeof accessors.getCategoryIds === 'function') {
+    created.getCategoryIds = accessors.getCategoryIds;
   }
 
   return Object.freeze(created);

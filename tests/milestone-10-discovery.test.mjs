@@ -204,22 +204,40 @@ const catalog = createCatalog(courses, cpdRecordAccessors);
     { text: '', categoryId: 'mental-health-wellbeing' },
     cpdRecordAccessors,
   );
-  assert(mental.size === 1, 'one mental health course');
-  assert(mental.getAll()[0].course.id === 'PHC-CPD-005', 'mental id');
+  assert(mental.size === 3, 'mental health primary + secondary');
+  assert(
+    mental
+      .getAll()
+      .map((course) => course.course.id)
+      .sort()
+      .join('|') === 'PHC-CPD-005|PHC-CPD-010|PHC-CPD-020',
+    'mental ids include secondary assignments',
+  );
 
-  const none = searchCatalog(
+  const integrative = searchCatalog(
     catalog,
     { text: '', categoryId: 'integrative-health' },
     cpdRecordAccessors,
   );
-  assert(none.size === 0, 'category with no courses');
+  assert(
+    integrative.size === 1 && integrative.getAll()[0].course.id === 'PHC-CPD-010',
+    'integrative via secondary category',
+  );
 
   const mens = searchCatalog(
     catalog,
     { text: '', categoryId: 'mens-health' },
     cpdRecordAccessors,
   );
-  assert(mens.size === 1 && mens.getAll()[0].course.id === 'PHC-CPD-030', 'mens health');
+  assert(
+    mens.size === 2 &&
+      mens
+        .getAll()
+        .map((course) => course.course.id)
+        .sort()
+        .join('|') === 'PHC-CPD-010|PHC-CPD-030',
+    'mens health primary + secondary',
+  );
 }
 
 // --- combined discovery via state ---
@@ -242,7 +260,7 @@ const catalog = createCatalog(courses, cpdRecordAccessors);
 
   state.setCategoryId('mental-health-wellbeing');
   assert(state.getSnapshot().categoryId === 'mental-health-wellbeing', 'category set');
-  assert(state.getSnapshot().resultCount === 1, 'category only');
+  assert(state.getSnapshot().resultCount === 3, 'category only');
 
   state.setSearchText('stress');
   assert(state.getSnapshot().resultCount === 1, 'search plus category');
@@ -252,7 +270,7 @@ const catalog = createCatalog(courses, cpdRecordAccessors);
   assert(state.getSnapshot().lifecycle === 'ready', 'ready retained');
 
   state.setSearchText('');
-  assert(state.getSnapshot().resultCount === 1, 'clear search keep category');
+  assert(state.getSnapshot().resultCount === 3, 'clear search keep category');
 
   state.setCategoryId('');
   assert(state.getSnapshot().resultCount === fixture.length, 'clear category keep search empty');
@@ -312,7 +330,7 @@ const catalog = createCatalog(courses, cpdRecordAccessors);
     const select = findByTag(view, 'select')[0];
     assert(select, 'category select');
     const options = findByTag(select, 'option');
-    assert(options[0].value === '' && options[0].textContent.includes('All categories'), 'all option');
+    assert(options[0].value === '' && options[0].textContent.includes('Alle Kategorien'), 'all option');
     assert(options.some((option) => option.value === 'lifestyle-medicine'), 'option values');
     assert(
       options.some(
@@ -320,7 +338,12 @@ const catalog = createCatalog(courses, cpdRecordAccessors);
       ),
       'selected category',
     );
-    assert(findByClass(view, 'phc-directory__result-status')[0].textContent.includes('course'), 'count');
+    assert(
+      findByClass(view, 'phc-directory__result-status')[0].textContent.includes(
+        'Weiterbildung',
+      ),
+      'count',
+    );
 
     const empty = createLifecycleView(
       {
@@ -341,7 +364,7 @@ const catalog = createCatalog(courses, cpdRecordAccessors);
       },
     );
     assert(
-      empty.textContent.includes('No CPD courses match your current search and category'),
+      empty.textContent.includes('Keine Weiterbildung entspricht Ihrer aktuellen Suche und Kategorie'),
       'empty state',
     );
 

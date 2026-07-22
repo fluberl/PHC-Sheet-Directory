@@ -1,7 +1,10 @@
 /**
- * CPD course card rendering — Milestone 9
+ * CPD course card rendering — Milestone 14
  * Builds semantic DOM from immutable card display models only.
  */
+
+import { cpdDirectoryCopy } from './copy.js';
+import { formatSwissDateLong } from './normalize.js';
 
 /**
  * @typedef {import('./presentation.js').CpdCourseCardModel} CpdCourseCardModel
@@ -120,7 +123,10 @@ function createMediaDescriptionRow(card) {
   } else {
     const placeholder = el('div', 'phc-directory__card-photo-placeholder');
     placeholder.setAttribute('role', 'img');
-    placeholder.setAttribute('aria-label', `Course image for ${card.title}`);
+    placeholder.setAttribute(
+      'aria-label',
+      cpdDirectoryCopy.courseImageAlt(card.title),
+    );
     media.appendChild(placeholder);
   }
   row.appendChild(media);
@@ -136,7 +142,7 @@ function createMediaDescriptionRow(card) {
   if (card.fullDescription) {
     const details = el('details', 'phc-directory__card-full-description');
     const summary = el('summary', 'phc-directory__card-full-description-toggle');
-    summary.textContent = 'Mehr lesen';
+    summary.textContent = cpdDirectoryCopy.readMore;
     details.appendChild(summary);
 
     const full = el('p', 'phc-directory__card-full-description-text');
@@ -159,12 +165,17 @@ function createMeta(card) {
   let hasMeta = false;
 
   if (card.location) {
-    meta.appendChild(createMetaItem('Location', card.location));
+    meta.appendChild(createMetaItem(cpdDirectoryCopy.location, card.location));
     hasMeta = true;
   }
 
   if (card.classification?.primaryCategory) {
-    meta.appendChild(createMetaItem('Category', card.classification.primaryCategory));
+    meta.appendChild(
+      createMetaItem(
+        cpdDirectoryCopy.category,
+        card.classification.primaryCategory,
+      ),
+    );
     hasMeta = true;
   }
 
@@ -174,7 +185,7 @@ function createMeta(card) {
   ) {
     meta.appendChild(
       createMetaItem(
-        'Also listed under',
+        cpdDirectoryCopy.alsoListedUnder,
         card.classification.alsoListedUnder.join(', '),
       ),
     );
@@ -184,7 +195,7 @@ function createMeta(card) {
   if (typeof card.classification?.cpdHours === 'number') {
     meta.appendChild(
       createMetaItem(
-        'CPD hours',
+        cpdDirectoryCopy.cpdHours,
         formatCpdHoursValue(card.classification.cpdHours),
       ),
     );
@@ -193,32 +204,41 @@ function createMeta(card) {
 
   if (card.delivery?.formats && card.delivery.formats.length > 0) {
     meta.appendChild(
-      createMetaItem('Format', card.delivery.formats.join(', ')),
+      createMetaItem(
+        cpdDirectoryCopy.format,
+        card.delivery.formats.join(', '),
+      ),
     );
     hasMeta = true;
   }
 
   if (card.delivery?.scheduleType) {
-    meta.appendChild(createMetaItem('Schedule type', card.delivery.scheduleType));
+    meta.appendChild(
+      createMetaItem(cpdDirectoryCopy.scheduleType, card.delivery.scheduleType),
+    );
     hasMeta = true;
   }
 
   if (card.delivery?.nextStart) {
     const iso = isoDateAttribute(card.delivery.nextStart);
+    const display = formatSwissDateLong(card.delivery.nextStart);
     if (iso) {
       const time = el('time');
       time.setAttribute('datetime', iso);
-      time.textContent = card.delivery.nextStart;
-      meta.appendChild(createMetaItem('Next start', time));
+      time.textContent = display;
+      meta.appendChild(createMetaItem(cpdDirectoryCopy.nextStart, time));
     } else {
-      meta.appendChild(createMetaItem('Next start', card.delivery.nextStart));
+      meta.appendChild(createMetaItem(cpdDirectoryCopy.nextStart, display));
     }
     hasMeta = true;
   }
 
   if (card.delivery?.scheduleDescription) {
     meta.appendChild(
-      createMetaItem('Schedule', card.delivery.scheduleDescription),
+      createMetaItem(
+        cpdDirectoryCopy.schedule,
+        card.delivery.scheduleDescription,
+      ),
     );
     hasMeta = true;
   }
@@ -237,12 +257,12 @@ function createFooter(card) {
   if (card.courseUrl) {
     const link = el('a', 'phc-directory__card-link');
     link.setAttribute('href', card.courseUrl);
-    link.textContent = 'Course information and registration';
+    link.textContent = cpdDirectoryCopy.courseCta;
     actions.appendChild(link);
   }
 
   const idRef = el('p', 'phc-directory__card-id');
-  idRef.textContent = `Ref. ${card.id}`;
+  idRef.textContent = cpdDirectoryCopy.courseRef(card.id);
   actions.appendChild(idRef);
   footer.appendChild(actions);
 
@@ -251,7 +271,7 @@ function createFooter(card) {
     qr.appendChild(
       createImage(
         card.qrCodeUrl,
-        `QR code for ${card.title}`,
+        cpdDirectoryCopy.qrCodeAlt(card.title),
         'phc-directory__card-qr-image',
       ),
     );
@@ -297,7 +317,7 @@ export function createCpdCourseCardList(cards) {
 
   const heading = el('h2', 'phc-directory__results-heading');
   heading.id = 'phc-directory-results-heading';
-  heading.textContent = 'CPD courses';
+  heading.textContent = cpdDirectoryCopy.resultsHeading;
   section.appendChild(heading);
 
   const list = el('ul', 'phc-directory__card-list');

@@ -1,5 +1,5 @@
 /**
- * CPD record accessors for generic Catalog / Search — Milestone 10
+ * CPD record accessors for generic Catalog / Search — Milestone 14
  */
 
 import { createRecordAccessors } from '../../domain/accessors.js';
@@ -14,23 +14,64 @@ function asCourse(entry) {
 }
 
 /**
+ * Collect all supported taxonomy ids for a course (primary + secondary).
+ * @param {import('./course.js').CpdCourse} course
+ * @returns {readonly string[]}
+ */
+export function collectCpdCategoryIds(course) {
+  /** @type {string[]} */
+  const ids = [];
+  /** @type {Set<string>} */
+  const seen = new Set();
+
+  /**
+   * @param {unknown} value
+   */
+  function addResolved(value) {
+    const resolved = resolvePrimaryCategory(value);
+    if (resolved.supported && resolved.id && !seen.has(resolved.id)) {
+      seen.add(resolved.id);
+      ids.push(resolved.id);
+    }
+  }
+
+  addResolved(course.classification?.primaryCategory);
+  if (Array.isArray(course.classification?.categories)) {
+    for (const item of course.classification.categories) {
+      addResolved(item);
+    }
+  }
+
+  return Object.freeze(ids);
+}
+
+/**
  * Build searchable text from CPD domain fields (not PUBLIC headings).
  * @param {import('./course.js').CpdCourse} course
  * @returns {string}
  */
 export function buildCpdSearchableText(course) {
-  const primary = resolvePrimaryCategory(course.classification?.primaryCategory);
-  const secondary = Array.isArray(course.classification?.categories)
-    ? course.classification.categories.join(' ')
-    : '';
+  const primaryRaw =
+    typeof course.classification?.primaryCategory === 'string'
+      ? course.classification.primaryCategory
+      : '';
+  const primary = resolvePrimaryCategory(primaryRaw);
+  const secondaryRaw = Array.isArray(course.classification?.categories)
+    ? course.classification.categories
+    : [];
+  const secondaryResolved = secondaryRaw
+    .map((item) => resolvePrimaryCategory(item).label)
+    .filter((label) => label !== '');
 
   return [
     course.course?.title,
     course.provider?.name,
     course.course?.summary,
     course.course?.description,
+    primaryRaw,
     primary.label,
-    secondary,
+    ...secondaryRaw,
+    ...secondaryResolved,
     Array.isArray(course.course?.languages)
       ? course.course.languages.join(' ')
       : '',
@@ -65,5 +106,8 @@ export const cpdRecordAccessors = createRecordAccessors({
       asCourse(entry)?.classification?.primaryCategory,
     );
     return resolved.supported ? resolved.id : null;
+  },
+  getCategoryIds(entry) {
+    return collectCpdCategoryIds(asCourse(entry));
   },
 });

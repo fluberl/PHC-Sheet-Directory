@@ -116,7 +116,7 @@ export async function fetchPublic(config) {
     return {
       ok: false,
       kind: 'not_configured',
-      message: 'PUBLIC source is not configured.',
+      message: 'Die PUBLIC-Datenquelle ist nicht konfiguriert.',
     };
   }
 
@@ -131,7 +131,7 @@ export async function fetchPublic(config) {
       ok: false,
       kind: 'network',
       message:
-        'The CPD directory could not be loaded right now. Please try again later.',
+        'Das CPD-Verzeichnis konnte derzeit nicht geladen werden. Bitte versuchen Sie es später erneut.',
     });
   }
 
@@ -140,7 +140,7 @@ export async function fetchPublic(config) {
       ok: false,
       kind: 'http',
       message:
-        'The CPD directory could not be loaded right now. Please try again later.',
+        'Das CPD-Verzeichnis konnte derzeit nicht geladen werden. Bitte versuchen Sie es später erneut.',
     });
   }
 
@@ -153,7 +153,7 @@ export async function fetchPublic(config) {
       ok: false,
       kind: 'invalid_payload',
       message:
-        'The CPD directory could not be loaded right now. Please try again later.',
+        'Das CPD-Verzeichnis konnte derzeit nicht geladen werden. Bitte versuchen Sie es später erneut.',
     });
   }
 
@@ -171,7 +171,7 @@ export async function fetchPublic(config) {
         ok: false,
         kind: 'not_array',
         message:
-          'The CPD directory could not be loaded right now. Please try again later.',
+          'Das CPD-Verzeichnis konnte derzeit nicht geladen werden. Bitte versuchen Sie es später erneut.',
       });
     }
 
@@ -179,7 +179,7 @@ export async function fetchPublic(config) {
       ok: false,
       kind: 'invalid_payload',
       message:
-        'The CPD directory could not be loaded right now. Please try again later.',
+        'Das CPD-Verzeichnis konnte derzeit nicht geladen werden. Bitte versuchen Sie es später erneut.',
     });
   }
 
@@ -188,7 +188,7 @@ export async function fetchPublic(config) {
       ok: false,
       kind: 'not_array',
       message:
-        'The CPD directory could not be loaded right now. Please try again later.',
+        'Das CPD-Verzeichnis konnte derzeit nicht geladen werden. Bitte versuchen Sie es später erneut.',
     });
   }
 

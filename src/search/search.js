@@ -1,9 +1,12 @@
 /**
- * Search — Version 1.0 (Milestone 10)
+ * Search — Version 1.0 (Milestone 14)
  * Pure function: Catalog + criteria → immutable SearchResult.
  *
- * Text and optional primary-category id are read through RecordAccessors.
+ * Text and optional category id are read through RecordAccessors.
  * Does not import specializations or know taxonomy labels.
+ *
+ * Category matching prefers getCategoryIds (multi-category) when provided,
+ * otherwise falls back to getPrimaryCategoryId.
  */
 
 import { flatRecordAccessors } from '../domain/accessors.js';
@@ -79,6 +82,25 @@ function searchableTextFor(entry, accessors) {
 }
 
 /**
+ * @param {unknown} entry
+ * @param {string} categoryId
+ * @param {RecordAccessors} accessors
+ * @returns {boolean}
+ */
+function entryMatchesCategory(entry, categoryId, accessors) {
+  if (typeof accessors.getCategoryIds === 'function') {
+    const ids = accessors.getCategoryIds(entry);
+    return Array.isArray(ids) && ids.includes(categoryId);
+  }
+
+  if (typeof accessors.getPrimaryCategoryId === 'function') {
+    return accessors.getPrimaryCategoryId(entry) === categoryId;
+  }
+
+  return false;
+}
+
+/**
  * @param {Catalog} catalog
  * @param {SearchCriteria} [criteria]
  * @param {RecordAccessors} [accessors]
@@ -109,9 +131,13 @@ export function searchCatalog(
   const categoryId = normalizeCategoryId(criteria?.categoryId);
   const needle = text === '' ? '' : text.toLowerCase();
 
-  if (categoryId !== '' && typeof accessors.getPrimaryCategoryId !== 'function') {
+  if (
+    categoryId !== '' &&
+    typeof accessors.getCategoryIds !== 'function' &&
+    typeof accessors.getPrimaryCategoryId !== 'function'
+  ) {
     throw new Error(
-      'searchCatalog failed: category filtering requires getPrimaryCategoryId accessor.',
+      'searchCatalog failed: category filtering requires getCategoryIds or getPrimaryCategoryId accessor.',
     );
   }
 
@@ -119,11 +145,8 @@ export function searchCatalog(
   const matched = [];
 
   for (const entry of source) {
-    if (categoryId !== '') {
-      const entryCategoryId = accessors.getPrimaryCategoryId(entry);
-      if (entryCategoryId !== categoryId) {
-        continue;
-      }
+    if (categoryId !== '' && !entryMatchesCategory(entry, categoryId, accessors)) {
+      continue;
     }
 
     if (needle !== '') {

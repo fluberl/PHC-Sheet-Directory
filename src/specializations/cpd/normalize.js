@@ -112,6 +112,78 @@ export function coerceNextStartIso(value) {
   return dates[0];
 }
 
+/** @type {Intl.DateTimeFormat} */
+const SWISS_DATE_LONG = new Intl.DateTimeFormat('de-CH', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+});
+
+/** @type {Intl.DateTimeFormat} */
+const SWISS_DATE_SHORT = new Intl.DateTimeFormat('de-CH', {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+});
+
+/**
+ * @param {string} iso
+ * @returns {Date | null}
+ */
+function dateFromIsoDay(iso) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+    return null;
+  }
+  const [year, month, day] = iso.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  if (
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day
+  ) {
+    return null;
+  }
+  return date;
+}
+
+/**
+ * Format a next-start value for display with Swiss long form (e.g. 17. August 2026).
+ * Falls back to the original text when the value cannot be coerced to a date.
+ *
+ * @param {unknown} value
+ * @returns {string}
+ */
+export function formatSwissDateLong(value) {
+  const iso = coerceNextStartIso(value);
+  if (!iso) {
+    return normalizeText(value);
+  }
+  const date = dateFromIsoDay(iso);
+  if (!date) {
+    return normalizeText(value);
+  }
+  return SWISS_DATE_LONG.format(date);
+}
+
+/**
+ * Format a next-start value for compact Swiss display (e.g. 17.08.2026).
+ * Falls back to the original text when the value cannot be coerced to a date.
+ *
+ * @param {unknown} value
+ * @returns {string}
+ */
+export function formatSwissDateShort(value) {
+  const iso = coerceNextStartIso(value);
+  if (!iso) {
+    return normalizeText(value);
+  }
+  const date = dateFromIsoDay(iso);
+  if (!date) {
+    return normalizeText(value);
+  }
+  return SWISS_DATE_SHORT.format(date);
+}
+
 /**
  * Normalize website / media URLs from PUBLIC cells.
  * Adds https:// when a bare domain is provided.
