@@ -113,13 +113,7 @@ console.log('Running Milestone 8 tests…');
   assert(normalizeCpdHours('2,25') === 2.25, 'comma hours');
   assert(normalizeCpdHours('') === null, 'empty hours');
   assert(normalizeCpdHours(null) === null, 'null hours');
-  let failed = false;
-  try {
-    normalizeCpdHours('TBD');
-  } catch {
-    failed = true;
-  }
-  assert(failed, 'invalid hours fail');
+  assert(normalizeCpdHours('TBD') === null, 'invalid hours become null');
 }
 
 // --- lists ---

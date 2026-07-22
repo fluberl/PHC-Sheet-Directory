@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>PHC CPD Directory — Demo (Milestone 10)</title>
+    <title>PHC CPD Directory — Demo (Milestone 12)</title>
     <link rel="stylesheet" href="../assets/styles/phc-directory.css" />
   </head>
   <body>
@@ -24,17 +24,10 @@
     <script type="module">
       import { start } from '../src/bootstrap.js';
 
-      // Switch sample:
-      // sample-public.json (PHC CPD PUBLIC v1.0) | sample-empty.json
-      // Flat legacy fixtures live under examples/legacy/flat-public/
-      const PUBLIC_SAMPLE = 'sample-public.json';
-
-      const publicSource = new URL(
-        `../examples/public/${PUBLIC_SAMPLE}`,
-        import.meta.url,
-      ).href;
-
-      start({ publicSource });
+      // Milestone 12: default PUBLIC source is the published Google Sheets CSV
+      // (see src/config/phc-public-cpd.js). Hosts may still override:
+      // start({ publicSource: '…' })
+      start();
     </script>
   </body>
 </html>

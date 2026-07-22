@@ -1,5 +1,5 @@
 /**
- * Architecture verification — Milestone 11
+ * Architecture verification — Milestone 12
  * Structural checks (imports/exports/APIs), not comment sniffing.
  */
 
@@ -9,7 +9,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
-/** Exact frozen PUBLIC v1.0 headings (production allowed only in the mapper). */
+/** Exact PUBLIC headings (production allowed only in the mapper). */
 const PUBLIC_HEADINGS = Object.freeze([
   'Anbietertyp',
   'Name des Anbieters',
@@ -26,11 +26,13 @@ const PUBLIC_HEADINGS = Object.freeze([
   'QR-Code (optional)',
   'Primärkategorie',
   'Weitere Kategorien',
+  'Unterrichtssprache',
   'Durchführungsformat',
   'Terminart',
   'Nächster Start',
   'Durchführung / Zeitplan',
   'Kursseite / Anmeldung',
+  'Veröffentlicht',
 ]);
 
 const TAXONOMY_IDS = Object.freeze([
@@ -311,5 +313,35 @@ assert(
   cssSrc.includes('phc-directory__schedule'),
   'Styles must cover the chronological schedule',
 );
+
+const publicCpdSrc = read('src/config/phc-public-cpd.js');
+assert(
+  publicCpdSrc.includes('output=csv'),
+  'Production PUBLIC CPD source must be the published Sheets CSV',
+);
+
+const sourceSrc = read('src/data/source.js');
+assert(
+  /parseCsvObjects/.test(sourceSrc),
+  'Data source must support CSV PUBLIC payloads',
+);
+assert(
+  /readCachedPublicPayload/.test(sourceSrc),
+  'Data source must support last-good cache fallback',
+);
+
+for (const file of [
+  'src/render/render.js',
+  'src/render/states.js',
+  'src/specializations/cpd/render-cards.js',
+  'src/specializations/cpd/render-list.js',
+  'src/specializations/cpd/render-views.js',
+]) {
+  const src = read(file);
+  assert(
+    !/docs\.google\.com|parseCsvObjects|fetchPublic/.test(src),
+    `${file} must remain datasource-independent`,
+  );
+}
 
 console.log('Architecture verification passed.');

@@ -1,5 +1,5 @@
 /**
- * Bootstrap — Version 1.0 (Milestone 11)
+ * Bootstrap — Version 1.0 (Milestone 12)
  * Orchestrates PUBLIC → CPD domain → Catalog → discovery → view rendering.
  */
 
@@ -150,7 +150,7 @@ export function start(hostOptions = {}) {
   const base = getConfig();
   const config = Object.freeze({
     mountSelector: hostOptions.mountSelector ?? base.mountSelector,
-    publicSource: hostOptions.publicSource,
+    publicSource: hostOptions.publicSource ?? base.publicSource,
   });
 
   const mount = getMountRoot(config.mountSelector);

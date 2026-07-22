@@ -31,6 +31,9 @@ export function buildCpdSearchableText(course) {
     course.course?.description,
     primary.label,
     secondary,
+    Array.isArray(course.course?.languages)
+      ? course.course.languages.join(' ')
+      : '',
   ]
     .filter((part) => typeof part === 'string' && part.trim() !== '')
     .join(' ');

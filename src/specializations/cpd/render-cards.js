@@ -126,9 +126,25 @@ function createMediaDescriptionRow(card) {
   row.appendChild(media);
 
   const description = el('div', 'phc-directory__card-description');
-  const text = el('p', 'phc-directory__card-description-text');
-  text.textContent = card.description || '';
-  description.appendChild(text);
+
+  if (card.description) {
+    const text = el('p', 'phc-directory__card-description-text');
+    text.textContent = card.description;
+    description.appendChild(text);
+  }
+
+  if (card.fullDescription) {
+    const details = el('details', 'phc-directory__card-full-description');
+    const summary = el('summary', 'phc-directory__card-full-description-toggle');
+    summary.textContent = 'Mehr lesen';
+    details.appendChild(summary);
+
+    const full = el('p', 'phc-directory__card-full-description-text');
+    full.textContent = card.fullDescription;
+    details.appendChild(full);
+    description.appendChild(details);
+  }
+
   row.appendChild(description);
 
   return row;

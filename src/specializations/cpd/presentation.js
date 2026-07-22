@@ -34,6 +34,7 @@ import { resolvePrimaryCategory } from './taxonomy.js';
  *   id: string,
  *   title: string,
  *   description?: string,
+ *   fullDescription?: string,
  *   imageUrl?: string,
  *   qrCodeUrl?: string,
  *   provider: Readonly<CpdCardProvider>,
@@ -92,16 +93,26 @@ function optionalStringList(items) {
 }
 
 /**
- * Prefer the longer course description; fall back to summary.
+ * Short editorial copy for the card body (summary / Kurzbeschreibung).
  * @param {CpdCourse} course
  * @returns {string | undefined}
  */
-function projectDescription(course) {
-  if (isNonEmptyString(course.course.description)) {
-    return course.course.description;
-  }
+function projectShortDescription(course) {
   if (isNonEmptyString(course.course.summary)) {
     return course.course.summary;
+  }
+  return undefined;
+}
+
+/**
+ * Optional long copy for disclosure only (detailed description).
+ * Kept out of the default visible card body.
+ * @param {CpdCourse} course
+ * @returns {string | undefined}
+ */
+function projectFullDescription(course) {
+  if (isNonEmptyString(course.course.description)) {
+    return course.course.description;
   }
   return undefined;
 }
@@ -149,9 +160,14 @@ export function projectCpdCourseToCard(course) {
     provider: Object.freeze(provider),
   };
 
-  const description = projectDescription(course);
+  const description = projectShortDescription(course);
   if (description) {
     model.description = description;
+  }
+
+  const fullDescription = projectFullDescription(course);
+  if (fullDescription) {
+    model.fullDescription = fullDescription;
   }
 
   const imageUrl = safeMediaUrl(course.course.imageUrl);

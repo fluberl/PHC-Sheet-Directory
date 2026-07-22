@@ -1,18 +1,22 @@
 /**
- * PHC CPD specialization public surface — Milestone 11
+ * PHC CPD specialization public surface — Milestone 12
  */
 
 export { createCpdCourse } from './course.js';
 export {
+  coerceNextStartIso,
   normalizeText,
   normalizeCpdHours,
+  normalizePublicUrl,
   parseStringList,
 } from './normalize.js';
 export {
   PUBLIC_COLUMNS,
+  isPublishedPublicRow,
   mapPublicRowToCpdCourse,
   mapPublicRowsToCpdCourses,
 } from './map-public-row.js';
+export { interpretPublishedFlag, isPublishedFlagValue } from './published.js';
 export {
   buildCpdSearchableText,
   cpdRecordAccessors,

@@ -1,6 +1,6 @@
 # Milestone 11 — Multiple Display Modes
 
-**Status:** Implemented (pending commit)
+**Status:** Completed
 **Date:** 22 July 2026
 
 ## Why

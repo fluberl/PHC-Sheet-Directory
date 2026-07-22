@@ -28,6 +28,7 @@ import {
  *   cpdHours: number | null,
  *   imageUrl: string,
  *   qrCodeUrl: string,
+ *   languages: readonly string[],
  * }} CpdCourseInfo
  *
  * @typedef {{
@@ -68,6 +69,7 @@ import {
  *   qrCodeUrl?: unknown,
  *   primaryCategory?: unknown,
  *   additionalCategories?: unknown,
+ *   languages?: unknown,
  *   formats?: unknown,
  *   scheduleType?: unknown,
  *   nextStart?: unknown,
@@ -96,16 +98,13 @@ export function createCpdCourse(input) {
   let cpdHours;
   try {
     cpdHours = normalizeCpdHours(input?.cpdHours);
-  } catch (failure) {
-    const detail =
-      failure instanceof Error && failure.message
-        ? failure.message
-        : 'invalid CPD hours';
-    throw new Error(detail);
+  } catch {
+    cpdHours = null;
   }
 
   const categories = parseStringList(input?.additionalCategories);
   const formats = parseStringList(input?.formats);
+  const languages = parseStringList(input?.languages);
 
   const provider = Object.freeze({
     type: normalizeText(input?.providerType),
@@ -124,6 +123,7 @@ export function createCpdCourse(input) {
     cpdHours,
     imageUrl: normalizeText(input?.imageUrl),
     qrCodeUrl: normalizeText(input?.qrCodeUrl),
+    languages,
   });
 
   const classification = Object.freeze({

@@ -1,14 +1,22 @@
 /**
- * PUBLIC row → CPD domain mapper — Milestone 8
+ * PUBLIC row → CPD domain mapper — Milestone 12
  *
  * Sole module that knows frozen German PUBLIC column headings.
  * Generic Catalog, Search, and Rendering must not import this file's
  * heading constants for business logic (fixtures/tests/docs may cite them).
+ *
+ * Incomplete or unpublished rows are skipped so one bad row cannot fail the directory.
  */
 
 import { createCpdCourse } from './course.js';
+import {
+  coerceNextStartIso,
+  normalizePublicUrl,
+  normalizeText,
+} from './normalize.js';
+import { interpretPublishedFlag } from './published.js';
 
-/** Frozen PUBLIC v1.0 column headings (logical order). */
+/** Frozen PUBLIC v1.0 (+ M12) column headings (logical order). */
 export const PUBLIC_COLUMNS = Object.freeze({
   providerType: 'Anbietertyp',
   providerName: 'Name des Anbieters',
@@ -25,12 +33,21 @@ export const PUBLIC_COLUMNS = Object.freeze({
   qrCodeUrl: 'QR-Code (optional)',
   primaryCategory: 'Primärkategorie',
   additionalCategories: 'Weitere Kategorien',
+  languages: 'Unterrichtssprache',
   formats: 'Durchführungsformat',
   scheduleType: 'Terminart',
   nextStart: 'Nächster Start',
   scheduleDescription: 'Durchführung / Zeitplan',
   courseUrl: 'Kursseite / Anmeldung',
+  published: 'Veröffentlicht',
 });
+
+/** English / alternate publication column names accepted on PUBLIC rows. */
+const PUBLISHED_COLUMN_ALIASES = Object.freeze([
+  PUBLIC_COLUMNS.published,
+  'Published',
+  'Freigegeben',
+]);
 
 /**
  * @param {Record<string, unknown>} row
@@ -45,6 +62,36 @@ function readColumn(row, column) {
 }
 
 /**
+ * Rows without a publication column (or with an empty flag) are treated as
+ * published so older PUBLIC fixtures remain valid. Explicit negatives are hidden.
+ *
+ * @param {unknown} row
+ * @returns {boolean}
+ */
+export function isPublishedPublicRow(row) {
+  if (row === null || typeof row !== 'object' || Array.isArray(row)) {
+    return false;
+  }
+
+  const record = /** @type {Record<string, unknown>} */ (row);
+
+  for (const column of PUBLISHED_COLUMN_ALIASES) {
+    if (!Object.prototype.hasOwnProperty.call(record, column)) {
+      continue;
+    }
+    const interpreted = interpretPublishedFlag(record[column]);
+    if (interpreted === false) {
+      return false;
+    }
+    if (interpreted === true) {
+      return true;
+    }
+  }
+
+  return true;
+}
+
+/**
  * Map one canonical PUBLIC row to an immutable CPD course entity.
  *
  * @param {unknown} row
@@ -56,12 +103,23 @@ export function mapPublicRowToCpdCourse(row) {
   }
 
   const record = /** @type {Record<string, unknown>} */ (row);
+  const rawNextStart = readColumn(record, PUBLIC_COLUMNS.nextStart);
+  const nextStartIso = coerceNextStartIso(rawNextStart);
+  const nextStart =
+    nextStartIso ||
+    (typeof rawNextStart === 'string' || typeof rawNextStart === 'number'
+      ? normalizeText(rawNextStart)
+      : '');
 
   return createCpdCourse({
     providerType: readColumn(record, PUBLIC_COLUMNS.providerType),
     providerName: readColumn(record, PUBLIC_COLUMNS.providerName),
-    providerWebsiteUrl: readColumn(record, PUBLIC_COLUMNS.providerWebsiteUrl),
-    providerLogoUrl: readColumn(record, PUBLIC_COLUMNS.providerLogoUrl),
+    providerWebsiteUrl: normalizePublicUrl(
+      readColumn(record, PUBLIC_COLUMNS.providerWebsiteUrl),
+    ),
+    providerLogoUrl: normalizePublicUrl(
+      readColumn(record, PUBLIC_COLUMNS.providerLogoUrl),
+    ),
     courseId: readColumn(record, PUBLIC_COLUMNS.courseId),
     title: readColumn(record, PUBLIC_COLUMNS.title),
     shortTitle: readColumn(record, PUBLIC_COLUMNS.shortTitle),
@@ -69,26 +127,28 @@ export function mapPublicRowToCpdCourse(row) {
     description: readColumn(record, PUBLIC_COLUMNS.description),
     location: readColumn(record, PUBLIC_COLUMNS.location),
     cpdHours: readColumn(record, PUBLIC_COLUMNS.cpdHours),
-    imageUrl: readColumn(record, PUBLIC_COLUMNS.imageUrl),
-    qrCodeUrl: readColumn(record, PUBLIC_COLUMNS.qrCodeUrl),
+    imageUrl: normalizePublicUrl(readColumn(record, PUBLIC_COLUMNS.imageUrl)),
+    qrCodeUrl: normalizePublicUrl(readColumn(record, PUBLIC_COLUMNS.qrCodeUrl)),
     primaryCategory: readColumn(record, PUBLIC_COLUMNS.primaryCategory),
     additionalCategories: readColumn(
       record,
       PUBLIC_COLUMNS.additionalCategories,
     ),
+    languages: readColumn(record, PUBLIC_COLUMNS.languages),
     formats: readColumn(record, PUBLIC_COLUMNS.formats),
     scheduleType: readColumn(record, PUBLIC_COLUMNS.scheduleType),
-    nextStart: readColumn(record, PUBLIC_COLUMNS.nextStart),
+    nextStart,
     scheduleDescription: readColumn(
       record,
       PUBLIC_COLUMNS.scheduleDescription,
     ),
-    courseUrl: readColumn(record, PUBLIC_COLUMNS.courseUrl),
+    courseUrl: normalizePublicUrl(readColumn(record, PUBLIC_COLUMNS.courseUrl)),
   });
 }
 
 /**
- * Map all PUBLIC rows; preserves source order.
+ * Map published PUBLIC rows; preserves source order.
+ * Skips unpublished and incomplete rows instead of failing the load.
  *
  * @param {unknown[]} rows
  * @returns {Readonly<import('./course.js').CpdCourse>[]}
@@ -98,15 +158,20 @@ export function mapPublicRowsToCpdCourses(rows) {
     throw new Error('PUBLIC mapper expected an array of rows.');
   }
 
-  return rows.map((row, index) => {
+  /** @type {Readonly<import('./course.js').CpdCourse>[]} */
+  const courses = [];
+
+  rows.forEach((row) => {
+    if (!isPublishedPublicRow(row)) {
+      return;
+    }
+
     try {
-      return mapPublicRowToCpdCourse(row);
-    } catch (failure) {
-      const detail =
-        failure instanceof Error && failure.message
-          ? failure.message
-          : 'mapping failed';
-      throw new Error(`PUBLIC mapping failed at row ${index + 1}: ${detail}`);
+      courses.push(mapPublicRowToCpdCourse(row));
+    } catch {
+      /* incomplete optional/required mix — skip row */
     }
   });
+
+  return courses;
 }

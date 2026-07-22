@@ -247,7 +247,17 @@ const publicRows = JSON.parse(
   assert(!('type' in card.provider), 'provider type omitted from presentation');
   assert(card.classification?.cpdHours === 24, 'cpd hours');
   assert(card.courseUrl === 'https://example.org/courses/health-coaching', 'course url');
-  assert(typeof card.description === 'string' && card.description.length > 40, 'description');
+  assert(typeof card.description === 'string' && card.description.length > 20, 'short description');
+  assert(
+    card.description === courses[0].course.summary,
+    'card body uses short summary only',
+  );
+  assert(
+    typeof card.fullDescription === 'string' &&
+      card.fullDescription === courses[0].course.description,
+    'full description preserved for disclosure',
+  );
+  assert(card.description !== card.fullDescription, 'short and full differ');
   assert(card.imageUrl === '/assets/demo/course-cis.svg', 'course image');
   assert(card.classification?.primaryCategoryId === 'health-coaching-communication', 'primary id');
   assert(card.classification?.primaryCategorySupported === true, 'supported primary');
@@ -328,6 +338,14 @@ const publicRows = JSON.parse(
     assert(findByClass(first, 'phc-directory__card-media-row').length === 1, 'media row');
     assert(findByClass(first, 'phc-directory__card-photo').length === 1, 'course photo');
     assert(findByClass(first, 'phc-directory__card-description-text').length === 1, 'description');
+    assert(
+      findByClass(first, 'phc-directory__card-full-description').length === 1,
+      'full description disclosure',
+    );
+    assert(
+      findByTag(first, 'summary')[0].textContent === 'Mehr lesen',
+      'disclosure label',
+    );
     assert(
       findByClass(first, 'phc-directory__card-meta-term').some(
         (node) => node.textContent === 'CPD hours',

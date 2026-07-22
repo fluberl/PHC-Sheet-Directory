@@ -138,25 +138,61 @@
 #phc-cpd-directory .phc-directory__card-provider-row {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
-  margin: 0 0 0.55rem;
+  gap: 0.55em;
+  margin: 0 0 0.45em;
+  font-size: 0.94rem; /* ~72% of course title — byline scale */
 }
 
 #phc-cpd-directory .phc-directory__card-provider-logo {
   display: block;
-  width: 2.5rem;
-  height: 2.5rem;
+  box-sizing: border-box;
+  width: 2.25rem;
+  height: 2.25rem;
+  aspect-ratio: 1 / 1;
   object-fit: contain;
-  flex: 0 0 auto;
+  object-position: center;
+  flex: 0 0 2.25rem;
+  background: transparent;
 }
 
 #phc-cpd-directory .phc-directory__card-provider-name {
   margin: 0;
-  font-size: 0.98rem;
+  min-width: 0;
+  font-family: 'Avenir Next', 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 1em;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: 0.01em;
+  color: #1a1a1a;
+}
+
+#phc-cpd-directory .phc-directory__card-provider-link {
+  color: inherit;
+  font: inherit;
+  text-decoration: none;
+}
+
+#phc-cpd-directory .phc-directory__card-provider-link:hover {
+  color: #0b3d6e;
+}
+
+#phc-cpd-directory .phc-directory__card-provider-link:focus {
+  outline: 2px solid #1a1a1a;
+  outline-offset: 0.15em;
+}
+
+#phc-cpd-directory .phc-directory__card-provider-link:focus:not(:focus-visible) {
+  outline: none;
+}
+
+#phc-cpd-directory .phc-directory__card-provider-link:focus-visible {
+  color: #0b3d6e;
+  outline: 2px solid #1a1a1a;
+  outline-offset: 0.15em;
 }
 
 #phc-cpd-directory .phc-directory__card-title {
-  margin: 0 0 0.85rem;
+  margin: 0 0 0.7em;
   font-size: 1.3rem;
   font-weight: 700;
   line-height: 1.3;
@@ -203,15 +239,38 @@
 #phc-cpd-directory .phc-directory__card-photo-placeholder {
   display: block;
   width: 100%;
+  max-width: 18rem;
   height: auto;
-  aspect-ratio: 8 / 5;
+  aspect-ratio: 1 / 1;
   object-fit: cover;
+  object-position: center;
   background: #e4e4e4;
 }
 
 #phc-cpd-directory .phc-directory__card-description-text {
   margin: 0;
   max-width: 40rem;
+}
+
+#phc-cpd-directory .phc-directory__card-full-description {
+  margin: 0.65rem 0 0;
+  max-width: 40rem;
+}
+
+#phc-cpd-directory .phc-directory__card-full-description-toggle {
+  cursor: pointer;
+  font-size: 0.95rem;
+  text-decoration: underline;
+  list-style: none;
+}
+
+#phc-cpd-directory .phc-directory__card-full-description-toggle::-webkit-details-marker {
+  display: none;
+}
+
+#phc-cpd-directory .phc-directory__card-full-description-text {
+  margin: 0.55rem 0 0;
+  white-space: pre-wrap;
 }
 
 #phc-cpd-directory .phc-directory__card-meta {
@@ -277,14 +336,12 @@
   background: #fff;
 }
 
-#phc-cpd-directory .phc-directory__card-link,
-#phc-cpd-directory .phc-directory__card-provider-link {
+#phc-cpd-directory .phc-directory__card-link {
   color: #0b3d6e;
   text-decoration: underline;
 }
 
-#phc-cpd-directory .phc-directory__card-link:focus,
-#phc-cpd-directory .phc-directory__card-provider-link:focus {
+#phc-cpd-directory .phc-directory__card-link:focus {
   outline: 2px solid #1a1a1a;
   outline-offset: 2px;
 }

@@ -3,6 +3,8 @@
  * Sorts display models only. Does not touch Catalog or Search results.
  */
 
+import { coerceNextStartIso } from './normalize.js';
+
 /**
  * @typedef {import('./presentation.js').CpdCourseCardModel} CpdCourseCardModel
  */
@@ -12,11 +14,8 @@
  * @returns {string}
  */
 function nextStartKey(card) {
-  const value = card.delivery?.nextStart;
-  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    return value;
-  }
-  return '9999-12-31';
+  const iso = coerceNextStartIso(card.delivery?.nextStart);
+  return iso || '9999-12-31';
 }
 
 /**
