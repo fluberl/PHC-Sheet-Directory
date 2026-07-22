@@ -12,10 +12,10 @@ Milestone documents live under [`docs/milestones/`](./).
 
 ## Current Stage
 
-**Milestone 12 — Live Google Sheets Integration** *(implemented, pending commit)*
+**Milestone 13 — WordPress Page Integration** *(implemented, pending commit)*
 
-The published PHC Public CPD Google Sheet is the production PUBLIC datasource.
-Presentation, discovery, and display modes are unchanged.
+Self-contained WordPress plugin shortcode mounts the unchanged Milestone 12
+directory into `#phc-cpd-directory` with conditional asset loading.
 
 ---
 
@@ -34,7 +34,8 @@ Presentation, discovery, and display modes are unchanged.
 | M9 | Completed | Editorial CPD course presentation | [M9-cpd-course-card-presentation.md](./M9-cpd-course-card-presentation.md) |
 | M10 | Completed | Discovery through taxonomy, search and category filtering | [M10-discovery.md](./M10-discovery.md) |
 | M11 | Completed | Multiple display modes over one filtered dataset | [M11-multiple-display-modes.md](./M11-multiple-display-modes.md) |
-| M12 | Implemented (pending commit) | Live Google Sheets PUBLIC datasource | [M12-google-sheets-integration.md](./M12-google-sheets-integration.md) |
+| M12 | Completed | Live Google Sheets PUBLIC datasource | [M12-google-sheets-integration.md](./M12-google-sheets-integration.md) |
+| M13 | Implemented (pending commit) | WordPress plugin shortcode host integration | [M13-wordpress-integration.md](./M13-wordpress-integration.md) |
 
 ---
 

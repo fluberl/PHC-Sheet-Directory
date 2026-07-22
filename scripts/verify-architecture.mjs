@@ -338,10 +338,24 @@ for (const file of [
   'src/specializations/cpd/render-views.js',
 ]) {
   const src = read(file);
-  assert(
-    !/docs\.google\.com|parseCsvObjects|fetchPublic/.test(src),
+assert(
+  !/docs\.google\.com|parseCsvObjects|fetchPublic/.test(src),
     `${file} must remain datasource-independent`,
   );
 }
+
+assert(
+  existsSync(join(root, 'wordpress/phc-cpd-directory/phc-cpd-directory.php')),
+  'WordPress plugin main file required',
+);
+const wpPhp = read('wordpress/phc-cpd-directory/phc-cpd-directory.php');
+assert(
+  wpPhp.includes('<div id="phc-cpd-directory"></div>'),
+  'WordPress shortcode must emit fixed mount root',
+);
+assert(
+  !wpPhp.includes('docs.google.com'),
+  'WordPress PHP must not duplicate the Sheets URL',
+);
 
 console.log('Architecture verification passed.');

@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "demo": "python3 -m http.server 8765",
-    "test": "node tests/generic-engine.test.mjs && node tests/milestone-8-cpd.test.mjs && node tests/milestone-9-cpd-cards.test.mjs && node tests/milestone-10-discovery.test.mjs && node tests/milestone-11-display-modes.test.mjs && node tests/milestone-12-google-sheets.test.mjs",
+    "deploy:wordpress": "node scripts/deploy-wordpress-plugin.mjs",
+    "test": "node tests/generic-engine.test.mjs && node tests/milestone-8-cpd.test.mjs && node tests/milestone-9-cpd-cards.test.mjs && node tests/milestone-10-discovery.test.mjs && node tests/milestone-11-display-modes.test.mjs && node tests/milestone-12-google-sheets.test.mjs && node tests/milestone-13-wordpress.test.mjs",
     "verify:architecture": "node scripts/verify-architecture.mjs",
     "verify": "npm run test && npm run verify:architecture"
   }
