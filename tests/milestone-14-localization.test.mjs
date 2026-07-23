@@ -2,15 +2,9 @@
  * Milestone 14 — German localization, Swiss dates, PHC taxonomy, multi-category
  */
 
-import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-import { createCatalog } from '../src/catalog/catalog.js';
-import { searchCatalog } from '../src/search/search.js';
 import {
   CPD_PRIMARY_CATEGORIES,
+  CPD_VIEW_MODE_OPTIONS,
   cpdRecordAccessors,
   formatSwissDateLong,
   formatSwissDateShort,
@@ -21,6 +15,13 @@ import {
 import { cpdDirectoryCopy } from '../src/specializations/cpd/copy.js';
 import { createCpdCourseCard } from '../src/specializations/cpd/render-cards.js';
 import { createCpdChronologicalList } from '../src/specializations/cpd/render-list.js';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+import assert from 'node:assert/strict';
+import { createCatalog } from '../src/catalog/catalog.js';
+import { searchCatalog } from '../src/search/search.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -260,6 +261,33 @@ const catalog = createCatalog(courses, cpdRecordAccessors);
   } finally {
     uninstall();
   }
+}
+
+// --- view mode labels ---
+{
+  const calendar = CPD_VIEW_MODE_OPTIONS.find((item) => item.id === 'calendar');
+  assert.equal(calendar?.label, 'Nach Datum', 'calendar view label');
+  assert.equal(
+    CPD_VIEW_MODE_OPTIONS.find((item) => item.id === 'catalogue')?.label,
+    'Katalog',
+    'catalogue view label unchanged',
+  );
+  assert.equal(
+    CPD_VIEW_MODE_OPTIONS.find((item) => item.id === 'chronological')?.label,
+    'Chronologische Liste',
+    'chronological view label unchanged',
+  );
+  assert.ok(
+    !CPD_VIEW_MODE_OPTIONS.some((item) => item.label === 'Kalenderkarten'),
+    'obsolete Kalenderkarten removed',
+  );
+
+  const viewModesSrc = readFileSync(
+    join(root, 'src/specializations/cpd/view-modes.js'),
+    'utf8',
+  );
+  assert.ok(viewModesSrc.includes("'Nach Datum'"), 'source has Nach Datum');
+  assert.ok(!viewModesSrc.includes('Kalenderkarten'), 'source drops Kalenderkarten');
 }
 
 console.log('Milestone 14 localization / taxonomy / dates checks passed.');

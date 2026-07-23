@@ -6,6 +6,7 @@
 import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { assertProductionBundle } from './assert-production-bundle.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -260,7 +261,7 @@ assert(
   'View mode control expected in lifecycle shell',
 );
 assert(
-  !/Calendar Cards|Chronological List|catalogue|Kalenderkarten|Chronologische Liste/.test(statesSrc),
+  !/Calendar Cards|Chronological List|catalogue|Kalenderkarten|Nach Datum|Chronologische Liste/.test(statesSrc),
   'Generic lifecycle shell must not hard-code CPD view labels',
 );
 assert(
@@ -310,6 +311,45 @@ assert(
   'Styles must cover the view selector',
 );
 assert(
+  /max-width:\s*1040px/.test(cssSrc),
+  'Directory container must use max-width 1040px',
+);
+assert(
+  /margin-inline:\s*auto/.test(cssSrc),
+  'Directory container must be horizontally centered',
+);
+assert(
+  /"Open Sans",\s*Arial,\s*sans-serif/.test(cssSrc),
+  'Discovery UI must use explicit Open Sans stack',
+);
+assert(
+  cssSrc.includes('#235853') &&
+    cssSrc.includes('#e76827') &&
+    cssSrc.includes('#b7dbd1') &&
+    cssSrc.includes('#808080'),
+  'Discovery controls must use PHC brand colours',
+);
+assert(
+  /#phc-cpd-directory\s+\.phc-directory__results\s*\{[^}]*Georgia/s.test(cssSrc),
+  'Editorial results must remain serif-scoped',
+);
+assert(
+  /@media\s*\(\s*min-width:\s*40\.0625rem\s*\)[\s\S]*justify-self:\s*start/.test(
+    cssSrc,
+  ),
+  'Desktop image-left cards must justify media to start',
+);
+assert(
+  /@media\s*\(\s*min-width:\s*40\.0625rem\s*\)[\s\S]*nth-child\(even\)[\s\S]*justify-self:\s*end/.test(
+    cssSrc,
+  ),
+  'Desktop image-right cards must justify media to end',
+);
+assert(
+  /@media\s*\(\s*min-width:\s*40\.0625rem\s*\)[\s\S]*width:\s*320px/.test(cssSrc),
+  'Desktop course images must be 320px',
+);
+assert(
   cssSrc.includes('phc-directory__schedule'),
   'Styles must cover the chronological schedule',
 );
@@ -357,5 +397,23 @@ assert(
   !wpPhp.includes('docs.google.com'),
   'WordPress PHP must not duplicate the Sheets URL',
 );
+assert(
+  wpPhp.includes('phc-cpd-directory.bundle.js'),
+  'WordPress must enqueue the production IIFE bundle',
+);
+assert(
+  !existsSync(join(root, 'wordpress/phc-cpd-directory/assets/js/src')),
+  'WordPress plugin must not ship nested ESM src for runtime fetch',
+);
+assert(
+  existsSync(
+    join(root, 'wordpress/phc-cpd-directory/assets/js/phc-cpd-directory.bundle.js'),
+  ),
+  'WordPress production bundle must exist',
+);
+const wpBundle = read(
+  'wordpress/phc-cpd-directory/assets/js/phc-cpd-directory.bundle.js',
+);
+assertProductionBundle(wpBundle, assert);
 
 console.log('Architecture verification passed.');

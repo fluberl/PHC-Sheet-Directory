@@ -1,5 +1,7 @@
 {
-  "deployedAt": "2026-07-22T15:24:35.307Z",
+  "deployedAt": "2026-07-23T10:54:31.177Z",
+  "pluginVersion": "1.0.5",
   "css": "assets/css/phc-directory.css",
-  "src": "assets/js/src"
+  "bundle": "assets/js/phc-cpd-directory.bundle.js",
+  "note": "Production enqueues only the IIFE bundle; nested ESM is not shipped."
 }

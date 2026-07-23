@@ -56,7 +56,7 @@ Specialization copy: `src/specializations/cpd/copy.js`
 
 Discovery chrome, result counts, empty/error states, card meta labels, CTAs,
 aria text, and schedule column headings are German. View mode labels
-(`Kalenderkarten`, `Katalog`, `Chronologische Liste`) live in
+(`Nach Datum`, `Katalog`, `Chronologische Liste`) live in
 `view-modes.js`.
 
 Generic lifecycle defaults and user-facing load/error messages are also
@@ -141,12 +141,64 @@ After application changes:
 
 ```bash
 npm run deploy:wordpress
+npm run package:wordpress
 ```
 
-Copies `assets/styles/phc-directory.css` and `src/` into
-`wordpress/phc-cpd-directory/assets/`. Milestone 14 included a full sync so
-the live plugin tree matches localization, dates, taxonomy, and multi-category
-behaviour. Plugin PHP and shortcode remain unchanged.
+`deploy:wordpress` copies CSS and builds
+`assets/js/phc-cpd-directory.bundle.js` (esbuild IIFE) from the modular
+`src/` tree. Nested ESM is **not** shipped inside the plugin package.
+WordPress enqueues only that production bundle (plus CSS).
+
+Package output:
+
+`dist/phc-cpd-directory-1.0.2-m14.zip`
+
+## Production defect — stale nested ESM (1.0.1 → 1.0.2)
+
+### Defect
+
+Milestone 13/14 initially shipped the full modular ESM tree under
+`wordpress/phc-cpd-directory/assets/js/src/` and enqueued a thin entry module
+that imported nested files at runtime. WordPress cache-busting (`?ver=`)
+applied only to the entry script. Nested module URLs had no version query
+string.
+
+### Forensic evidence (live host)
+
+Browser Network → `render-cards.js` Response on the production site still
+contained the pre-M14 card renderer:
+
+- `createMetaItem('Location', …)`
+- `createMetaItem('Category', …)`
+- `createMetaItem('Also listed under', …)`
+- `createMetaItem('CPD hours', …)`
+- `createMetaItem('Schedule type', …)`
+- `time.textContent = card.delivery.nextStart`
+- `'Course information and registration'`
+- `'CPD courses'`
+
+and did **not** contain `cpdDirectoryCopy` or `formatSwissDateLong`.
+
+Plugin metadata showed **1.0.1**, and the M14 module *filenames* loaded, but
+the **bodies** of nested modules were pre-M14. That combination is the
+fingerprint of a stale or mixed nested-ESM deploy — not a failure of the
+M14 source in git.
+
+### Durable fix (plugin 1.0.2)
+
+- Keep modular ESM under repository `src/` for development and tests
+- Bundle the complete dependency graph into one production IIFE:
+  `assets/js/phc-cpd-directory.bundle.js` (esbuild)
+- Bundle input lives outside the plugin:
+  `scripts/wordpress-bundle-entry.js`
+- WordPress enqueues **only** that bundle (classic script; no `type="module"`)
+- Nested plugin `assets/js/src/` is removed from the packaged plugin so it
+  cannot be fetched at runtime
+- Release bumped to **1.0.2** (plugin header, `VERSION`, readme Stable tag)
+
+M13 host boundaries remain unchanged: shortcode, own assets, approved Google
+Sheet only, render inside `#phc-cpd-directory`, no database writes, no admin
+pages, no cron, no theme or other-plugin modification.
 
 ## Files and architectural areas changed
 
@@ -158,7 +210,8 @@ behaviour. Plugin PHP and shortcode remain unchanged.
 | Multi-category | `src/domain/accessors.js`, `src/search/search.js`, `src/specializations/cpd/accessors.js` |
 | Demo | `demo/index.html` (`lang="de-CH"`) |
 | Verification | `scripts/verify-architecture.mjs`, `package.json`, `tests/milestone-14-localization.test.mjs`, M9–M12 test updates |
-| WordPress | mirrored modules under `wordpress/phc-cpd-directory/assets/js/src/` |
+| WordPress (1.0.1) | initial mirrored modules (superseded) |
+| WordPress (1.0.2) | `phc-cpd-directory.bundle.js`, enqueue-only bundle, `scripts/build-wordpress-bundle.mjs`, `scripts/package-wordpress-plugin.mjs` |
 
 ## Verification
 
@@ -175,19 +228,21 @@ behaviour. Plugin PHP and shortcode remain unchanged.
 | `npm run verify:architecture` | Pass |
 | `npm run verify` | Pass |
 | `git diff --check` | Pass |
+| Production bundle has no runtime imports | Pass (1.0.2) |
+| Plugin ships no nested `assets/js/src/` | Pass (1.0.2) |
 
 ## Tests
 
 - `tests/milestone-14-localization.test.mjs` — taxonomy labels, aliases,
   Swiss dates, German copy, multi-category filter, rendered chrome
 - Existing M8–M13 suites retained (assertions updated for German copy and
-  multi-category counts)
+  multi-category counts; M13 updated for production bundle enqueue)
 
 ## Explicitly out of scope
 
 Architecture redesign, new display modes, datasource changes, MASTERDATA
-access, WordPress PHP redesign, fuzzy search / synonyms, dialect (Mundart)
-copy.
+access, WordPress PHP redesign beyond production enqueue, fuzzy search /
+synonyms, dialect (Mundart) copy.
 
 ## Outcome
 
@@ -195,6 +250,9 @@ The CPD directory is production-ready for PHC Schweiz: members see a fully
 German interface, Swiss-formatted dates, and the official coaching-domain
 taxonomy, including courses listed under multiple categories — without
 breaking the generic engine, live Sheets feed, or WordPress mount.
+
+Release **1.0.2** makes that M14 UI durable on WordPress by eliminating
+nested runtime ESM fetches.
 
 ## Significance of M14
 
@@ -204,7 +262,15 @@ site: localization, cultural date conventions, and the real taxonomy become
 configuration and specialization concerns, while the generic core stays
 intact for future directories.
 
+The 1.0.2 production bundle closes the deployment gap discovered when the
+live host continued to execute pre-M14 nested modules after 1.0.1 metadata
+was installed.
+
 ## Commit status
 
-Committed and pushed as `fc7b769`
+M14 application work committed and pushed as `fc7b769`
 (`feat: complete M14 localization and PHC taxonomy`).
+
+Production bundle fix (1.0.2) is prepared in the working tree; package as
+`dist/phc-cpd-directory-1.0.2-m14.zip` after `npm run deploy:wordpress` and
+`npm run package:wordpress`.

@@ -1,10 +1,12 @@
 /**
  * Milestone 13 tests — WordPress plugin host contract (static checks).
+ * Updated for Milestone 14.1 production IIFE bundle enqueue.
  */
 
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
-import { dirname, join, relative } from 'node:path';
+import { existsSync, readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { assertProductionBundle } from '../scripts/assert-production-bundle.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const pluginRoot = join(root, 'wordpress', 'phc-cpd-directory');
@@ -15,40 +17,29 @@ function assert(condition, message) {
   }
 }
 
-function listJs(dir) {
-  /** @type {string[]} */
-  const files = [];
-  function walk(current) {
-    for (const name of readdirSync(current)) {
-      const full = join(current, name);
-      const st = statSync(full);
-      if (st.isDirectory()) walk(full);
-      else if (name.endsWith('.js')) files.push(full);
-    }
-  }
-  walk(dir);
-  return files;
-}
-
 console.log('Running Milestone 13 WordPress integration tests…');
 
 {
   assert(existsSync(join(pluginRoot, 'phc-cpd-directory.php')), 'plugin php');
   assert(
-    existsSync(join(pluginRoot, 'assets/js/phc-cpd-directory.js')),
-    'entry js',
+    existsSync(join(root, 'scripts/wordpress-bundle-entry.js')),
+    'bundle entry source',
+  );
+  assert(
+    existsSync(join(pluginRoot, 'assets/js/phc-cpd-directory.bundle.js')),
+    'production bundle',
   );
   assert(
     existsSync(join(pluginRoot, 'assets/css/phc-directory.css')),
     'plugin css',
   );
   assert(
-    existsSync(join(pluginRoot, 'assets/js/src/bootstrap.js')),
-    'synced bootstrap',
+    !existsSync(join(pluginRoot, 'assets/js/src')),
+    'nested ESM src must not ship in plugin',
   );
   assert(
-    existsSync(join(pluginRoot, 'assets/js/src/config/phc-public-cpd.js')),
-    'synced sheets config',
+    !existsSync(join(pluginRoot, 'assets/js/phc-cpd-directory.js')),
+    'modular entry must not ship in plugin',
   );
 }
 
@@ -65,18 +56,37 @@ console.log('Running Milestone 13 WordPress integration tests…');
   assert(php.includes('wp_enqueue_style'), 'style enqueue');
   assert(php.includes('wp_enqueue_script'), 'script enqueue');
   assert(php.includes('filemtime'), 'cache busting');
-  assert(php.includes('type="module"'), 'module script tag');
+  assert(
+    php.includes('phc-cpd-directory.bundle.js'),
+    'enqueues production bundle',
+  );
+  assert(
+    !php.includes("assets/js/phc-cpd-directory.js'"),
+    'does not enqueue modular entry',
+  );
+  assert(!php.includes('type="module"'), 'classic script, not ESM module tag');
+  assert(!php.includes('module_script_tag'), 'no module tag filter');
   assert(!/eval\s*\(/.test(php), 'no eval');
+  assert(php.includes("VERSION = '1.0.5'"), 'version constant 1.0.5');
+  assert(php.includes('Version:           1.0.5'), 'plugin header 1.0.5');
 }
 
 {
   const entry = readFileSync(
-    join(pluginRoot, 'assets/js/phc-cpd-directory.js'),
+    join(root, 'scripts/wordpress-bundle-entry.js'),
     'utf8',
   );
-  assert(/from '\.\/src\/bootstrap\.js'/.test(entry), 'imports bootstrap');
+  assert(/from ['"].*src\/bootstrap\.js['"]/.test(entry), 'entry imports bootstrap');
   assert(/start\(\)/.test(entry), 'calls start');
   assert(!/docs\.google\.com/.test(entry), 'no sheets url in entry');
+}
+
+{
+  const bundle = readFileSync(
+    join(pluginRoot, 'assets/js/phc-cpd-directory.bundle.js'),
+    'utf8',
+  );
+  assertProductionBundle(bundle, assert);
 }
 
 {
@@ -120,12 +130,8 @@ console.log('Running Milestone 13 WordPress integration tests…');
 }
 
 {
-  const synced = listJs(join(pluginRoot, 'assets/js/src'));
-  assert(synced.length >= 30, 'src tree synced');
-  for (const file of synced) {
-    const rel = relative(join(pluginRoot, 'assets/js/src'), file);
-    assert(existsSync(join(root, 'src', rel)), `mirror exists for ${rel}`);
-  }
+  const readme = readFileSync(join(pluginRoot, 'readme.txt'), 'utf8');
+  assert(readme.includes('Stable tag: 1.0.5'), 'readme stable tag');
 }
 
 console.log('All Milestone 13 WordPress integration tests passed.');

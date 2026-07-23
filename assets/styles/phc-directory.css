@@ -1,13 +1,20 @@
 /**
- * PHC Directory styles — Version 1.0 (Milestone 11)
+ * PHC Directory styles — Version 1.0 (Milestone 15)
  * All rules are scoped under the mount root to avoid WordPress / Thrive conflicts.
  */
 
 #phc-cpd-directory {
+  --phc-green: #235853;
+  --phc-tango: #e76827;
+  --phc-edgewater: #b7dbd1;
+  --phc-grey: #808080;
+  --phc-ui-font: "Open Sans", Arial, sans-serif;
+  --phc-control-radius: 0.25rem;
+
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--phc-ui-font);
   color: #1a1a1a;
   line-height: 1.5;
 }
@@ -21,7 +28,8 @@
 #phc-cpd-directory .phc-directory {
   display: block;
   width: 100%;
-  max-width: 52rem;
+  max-width: 1040px;
+  margin-inline: auto;
 }
 
 #phc-cpd-directory .phc-directory__lifecycle {
@@ -33,6 +41,7 @@
   margin: 0;
   padding: 1.25rem 0;
   font-size: 1.0625rem;
+  font-family: Georgia, 'Times New Roman', serif;
 }
 
 #phc-cpd-directory .phc-directory__status-title,
@@ -50,6 +59,8 @@
   gap: 0.85rem 1.25rem;
   margin: 0 0 1rem;
   align-items: end;
+  font-family: var(--phc-ui-font);
+  color: var(--phc-green);
 }
 
 #phc-cpd-directory .phc-directory__search,
@@ -57,6 +68,7 @@
 #phc-cpd-directory .phc-directory__view {
   margin: 0;
   min-width: 0;
+  font-family: var(--phc-ui-font);
 }
 
 #phc-cpd-directory .phc-directory__search-label,
@@ -65,6 +77,8 @@
   display: block;
   margin-bottom: 0.35rem;
   font-size: 0.95rem;
+  font-family: var(--phc-ui-font);
+  color: var(--phc-green);
 }
 
 #phc-cpd-directory .phc-directory__search-input,
@@ -74,30 +88,46 @@
   width: 100%;
   margin: 0;
   padding: 0.55rem 0.7rem;
-  border: 1px solid #6e6e6e;
-  border-radius: 0;
-  background: #fff;
-  color: inherit;
+  border: 1px solid var(--phc-green);
+  border-radius: var(--phc-control-radius);
+  background: var(--phc-edgewater);
+  color: var(--phc-green);
   font: inherit;
+  font-family: var(--phc-ui-font);
   min-height: 2.75rem;
+}
+
+#phc-cpd-directory .phc-directory__search-input::placeholder {
+  color: var(--phc-green);
+  opacity: 0.55;
+}
+
+#phc-cpd-directory .phc-directory__category-select option,
+#phc-cpd-directory .phc-directory__view-select option {
+  font-family: var(--phc-ui-font);
+  color: var(--phc-green);
+  background: #fff;
 }
 
 #phc-cpd-directory .phc-directory__search-input:focus,
 #phc-cpd-directory .phc-directory__category-select:focus,
 #phc-cpd-directory .phc-directory__view-select:focus {
-  outline: 2px solid #1a1a1a;
+  border-color: var(--phc-tango);
+  outline: 2px solid var(--phc-tango);
   outline-offset: 2px;
 }
 
 #phc-cpd-directory .phc-directory__result-status {
   margin: 0 0 1rem;
   font-size: 0.95rem;
-  color: #333;
+  font-family: var(--phc-ui-font);
+  color: var(--phc-grey);
 }
 
 #phc-cpd-directory .phc-directory__no-results {
   margin: 0.5rem 0 0;
   padding: 0.85rem 0;
+  font-family: Georgia, 'Times New Roman', serif;
 }
 
 #phc-cpd-directory .phc-directory__no-results-text {
@@ -107,6 +137,7 @@
 #phc-cpd-directory .phc-directory__results {
   margin: 0;
   padding: 0;
+  font-family: Georgia, 'Times New Roman', serif;
 }
 
 #phc-cpd-directory .phc-directory__results-heading {
@@ -257,6 +288,29 @@
   object-fit: cover;
   object-position: center;
   background: #e4e4e4;
+}
+
+/*
+ * Milestone 16 — desktop card composition (above the mobile stack breakpoint).
+ * Image-left: media flush to the left of its column.
+ * Image-right: media flush to the right of its column (justify-self: end).
+ * Square photos enlarge to 320px while keeping object-fit: cover.
+ */
+@media (min-width: 40.0625rem) {
+  #phc-cpd-directory .phc-directory__card-media {
+    justify-self: start;
+  }
+
+  #phc-cpd-directory .phc-directory__card-item:nth-child(even) .phc-directory__card-media {
+    justify-self: end;
+  }
+
+  #phc-cpd-directory .phc-directory__card-photo,
+  #phc-cpd-directory .phc-directory__card-photo-placeholder {
+    width: 320px;
+    max-width: 320px;
+    height: 320px;
+  }
 }
 
 #phc-cpd-directory .phc-directory__card-description-text {

@@ -3,7 +3,7 @@
  * Plugin Name:       PHC CPD Directory
  * Plugin URI:        https://swiss-online-marketing-agentur.ch/
  * Description:       Embeds the PHC Schweiz CPD directory with the shortcode [phc_cpd_directory]. Loads live Google Sheets data via the existing application configuration.
- * Version:           1.0.1
+ * Version:           1.0.5
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Ulf Toelle
@@ -17,7 +17,7 @@ if (!defined('ABSPATH')) {
 }
 
 final class PHC_CPD_Directory_Plugin {
-	const VERSION = '1.0.1';
+	const VERSION = '1.0.5';
 	const SHORTCODE = 'phc_cpd_directory';
 	const STYLE_HANDLE = 'phc-cpd-directory';
 	const SCRIPT_HANDLE = 'phc-cpd-directory';
@@ -31,7 +31,6 @@ final class PHC_CPD_Directory_Plugin {
 	public static function init() {
 		add_shortcode(self::SHORTCODE, array(__CLASS__, 'render_shortcode'));
 		add_action('wp_enqueue_scripts', array(__CLASS__, 'maybe_enqueue_from_post'), 20);
-		add_filter('script_loader_tag', array(__CLASS__, 'module_script_tag'), 10, 3);
 	}
 
 	/**
@@ -66,7 +65,8 @@ final class PHC_CPD_Directory_Plugin {
 	}
 
 	/**
-	 * Conditionally enqueue CSS + ESM entry (and dependent src tree).
+	 * Conditionally enqueue CSS + production IIFE bundle only.
+	 * Nested application ESM modules are not shipped and must not be loaded.
 	 */
 	public static function enqueue_assets() {
 		if (self::$assets_enqueued) {
@@ -77,7 +77,7 @@ final class PHC_CPD_Directory_Plugin {
 		$plugin_url = plugin_dir_url(__FILE__);
 
 		$css_rel = 'assets/css/phc-directory.css';
-		$js_rel = 'assets/js/phc-cpd-directory.js';
+		$js_rel = 'assets/js/phc-cpd-directory.bundle.js';
 		$css_path = $plugin_dir . $css_rel;
 		$js_path = $plugin_dir . $js_rel;
 
@@ -104,26 +104,6 @@ final class PHC_CPD_Directory_Plugin {
 		);
 
 		self::$assets_enqueued = true;
-	}
-
-	/**
-	 * Mark the CPD entry script as an ES module.
-	 *
-	 * @param string $tag
-	 * @param string $handle
-	 * @param string $src
-	 * @return string
-	 */
-	public static function module_script_tag($tag, $handle, $src) {
-		if ($handle !== self::SCRIPT_HANDLE) {
-			return $tag;
-		}
-
-		if (false !== strpos($tag, 'type=')) {
-			return $tag;
-		}
-
-		return str_replace('<script ', '<script type="module" ', $tag);
 	}
 
 	/**

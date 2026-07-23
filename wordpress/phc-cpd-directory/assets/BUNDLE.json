@@ -1,0 +1,10 @@
+{
+  "builtAt": "2026-07-23T10:54:31.173Z",
+  "entry": "scripts/wordpress-bundle-entry.js",
+  "outfile": "assets/js/phc-cpd-directory.bundle.js",
+  "format": "iife",
+  "bundler": "esbuild",
+  "charset": "utf8",
+  "pluginVersion": "1.0.5",
+  "inputCount": 34
+}
