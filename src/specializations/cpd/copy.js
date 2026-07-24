@@ -1,5 +1,5 @@
 /**
- * CPD directory UI copy — Milestone 14
+ * CPD directory UI copy — Milestone 18
  * Specialization-owned German (de-CH) strings for the generic lifecycle shell
  * and CPD presentation chrome.
  */
@@ -31,18 +31,20 @@ export const cpdDirectoryCopy = Object.freeze({
   location: 'Ort',
   category: 'Kategorie',
   alsoListedUnder: 'Auch gelistet unter',
-  cpdHours: 'CPD-Stunden',
+  cpdHours: 'WB-Stunden*',
+  wbHoursFootnote: '* Weiterbildungsstunden',
   format: 'Format',
   scheduleType: 'Art des Termins',
   nextStart: 'Nächster Termin',
   schedule: 'Durchführung',
-  courseCta: 'Kursinformationen und Anmeldung',
+  courseCta: 'Kursinformationen & Anmeldung',
   /**
+   * Display the course id exactly as supplied by PUBLIC (no prefix).
    * @param {string} id
    * @returns {string}
    */
   courseRef(id) {
-    return `Ref. ${id}`;
+    return id;
   },
   /**
    * @param {string} title

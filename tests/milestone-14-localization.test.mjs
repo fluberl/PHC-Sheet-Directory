@@ -244,7 +244,22 @@ const catalog = createCatalog(courses, cpdRecordAccessors);
     );
     assert.ok(terms.includes('Nächster Termin'), 'next start label DE');
     assert.ok(terms.includes('Ort'), 'location label DE');
-    assert.ok(terms.includes('CPD-Stunden'), 'hours label DE');
+    assert.ok(
+      !terms.includes('CPD-Stunden') && !terms.includes('WB-Stunden*'),
+      'hours live outside meta terms',
+    );
+    assert.ok(
+      findByClass(article, 'phc-directory__card-hours-label').some(
+        (node) => node.textContent === 'WB-Stunden*',
+      ),
+      'hours label DE',
+    );
+    assert.ok(
+      findByClass(article, 'phc-directory__card-cta').some((node) =>
+        node.textContent.includes('Kursinformationen'),
+      ),
+      'CTA DE',
+    );
 
     const time = findByTag(article, 'time')[0];
     assert.equal(time.getAttribute('datetime'), '2026-09-01', 'iso datetime kept');

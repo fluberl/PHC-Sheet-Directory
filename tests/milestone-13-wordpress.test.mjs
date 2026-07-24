@@ -67,8 +67,8 @@ console.log('Running Milestone 13 WordPress integration tests…');
   assert(!php.includes('type="module"'), 'classic script, not ESM module tag');
   assert(!php.includes('module_script_tag'), 'no module tag filter');
   assert(!/eval\s*\(/.test(php), 'no eval');
-  assert(php.includes("VERSION = '1.0.5'"), 'version constant 1.0.5');
-  assert(php.includes('Version:           1.0.5'), 'plugin header 1.0.5');
+  assert(php.includes("VERSION = '1.0.9'"), 'version constant 1.0.9');
+  assert(php.includes('Version:           1.0.9'), 'plugin header 1.0.9');
 }
 
 {
@@ -131,7 +131,7 @@ console.log('Running Milestone 13 WordPress integration tests…');
 
 {
   const readme = readFileSync(join(pluginRoot, 'readme.txt'), 'utf8');
-  assert(readme.includes('Stable tag: 1.0.5'), 'readme stable tag');
+  assert(readme.includes('Stable tag: 1.0.9'), 'readme stable tag');
 }
 
 console.log('All Milestone 13 WordPress integration tests passed.');

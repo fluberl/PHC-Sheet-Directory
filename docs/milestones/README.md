@@ -12,10 +12,10 @@ Milestone documents live under [`docs/milestones/`](./).
 
 ## Current Stage
 
-**Milestone 16 — Desktop Card Composition** *(completed)*
+**Milestone 19 — Desktop Image Balance** *(completed)*
 
-Desktop alternating media alignment and 320px square course images on plugin
-release **1.0.5**, with tablet/mobile stacking unchanged.
+Course images centered within their desktop media columns on plugin **1.0.9**,
+with size, aspect ratio, and alternating columns unchanged.
 
 ---
 
@@ -39,6 +39,9 @@ release **1.0.5**, with tablet/mobile stacking unchanged.
 | M14 | Completed | German localization, Swiss dates, PHC taxonomy, multi-category filtering | [M14-localization-and-taxonomy.md](./M14-localization-and-taxonomy.md) |
 | M15 | Completed | Desktop width/centering, Open Sans discovery UI, light PHC control branding | [M15-branding-and-layout.md](./M15-branding-and-layout.md) |
 | M16 | Completed | Desktop alternating media alignment and 320px course images | [M16-desktop-card-composition.md](./M16-desktop-card-composition.md) |
+| M17 | Completed | Contained PHC cards, accent strip, coherent metadata flow | [M17-contained-cards.md](./M17-contained-cards.md) |
+| M18 | Completed | Card hierarchy: two-column meta, PHC CTA, WB metric, quiet footer | [M18-card-hierarchy.md](./M18-card-hierarchy.md) |
+| M19 | Completed | Center desktop course images within their media columns | [M19-image-balance.md](./M19-image-balance.md) |
 
 ---
 

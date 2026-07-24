@@ -347,10 +347,10 @@ const publicRows = JSON.parse(
       'disclosure label',
     );
     assert(
-      findByClass(first, 'phc-directory__card-meta-term').some(
-        (node) => node.textContent === 'CPD-Stunden',
+      findByClass(first, 'phc-directory__card-hours-label').some(
+        (node) => node.textContent === 'WB-Stunden*',
       ),
-      'CPD-Stunden label',
+      'WB-Stunden label',
     );
     assert(
       !findByClass(first, 'phc-directory__card-meta-term').some(
@@ -359,9 +359,16 @@ const publicRows = JSON.parse(
       'no Recognition label',
     );
     assert(findByClass(first, 'phc-directory__card-footer').length === 1, 'footer');
+    assert(findByClass(first, 'phc-directory__card-details').length === 1, 'details grid');
+    assert(findByClass(first, 'phc-directory__card-cta').length === 1, 'PHC CTA button');
 
     const idNode = findByClass(first, 'phc-directory__card-id')[0];
-    assert(idNode.textContent === 'Ref. PHC-CPD-001', 'quiet reference text');
+    assert(idNode.textContent === 'PHC-CPD-001', 'sheet reference as supplied');
+    assert(
+      findByClass(first, 'phc-directory__card-hours-footnote')[0].textContent ===
+        '* Weiterbildungsstunden',
+      'WB footnote',
+    );
 
     const second = createCpdCourseCard(cards[1]);
     assert(findByClass(second, 'phc-directory__card-qr').length === 1, 'qr present when available');
@@ -387,7 +394,7 @@ const publicRows = JSON.parse(
       findByClass(sparseArticle, 'phc-directory__card-photo-placeholder').length === 1,
       'photo placeholder when missing',
     );
-    assert(findByClass(sparseArticle, 'phc-directory__card-actions').length === 1, 'actions shell');
+    assert(findByClass(sparseArticle, 'phc-directory__card-footer').length === 1, 'footer shell');
     assert(findByTag(sparseArticle, 'a').length === 0, 'no empty registration link');
     assert(findByTag(sparseArticle, 'dl').length === 0, 'no empty meta');
     assert(findByClass(sparseArticle, 'phc-directory__card-qr').length === 0, 'no empty qr');

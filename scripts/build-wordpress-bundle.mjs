@@ -62,7 +62,7 @@ writeFileSync(
       format: 'iife',
       bundler: 'esbuild',
       charset: 'utf8',
-      pluginVersion: '1.0.5',
+      pluginVersion: '1.0.9',
       inputCount: inputs.length,
     },
     null,

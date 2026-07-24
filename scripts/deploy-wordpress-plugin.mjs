@@ -50,7 +50,7 @@ assert(build.status === 0, 'WordPress bundle build failed');
 
 const stamp = {
   deployedAt: new Date().toISOString(),
-  pluginVersion: '1.0.5',
+  pluginVersion: '1.0.9',
   css: 'assets/css/phc-directory.css',
   bundle: 'assets/js/phc-cpd-directory.bundle.js',
   note: 'Production enqueues only the IIFE bundle; nested ESM is not shipped.',

@@ -1,5 +1,5 @@
 /**
- * Package the WordPress plugin into dist/phc-cpd-directory-VERSION-m16.zip
+ * Package the WordPress plugin into dist/phc-cpd-directory-VERSION-m19.zip
  * with exactly one top-level folder: phc-cpd-directory/
  */
 
@@ -20,8 +20,8 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const pluginRoot = join(root, 'wordpress', 'phc-cpd-directory');
 const wordpressDir = join(root, 'wordpress');
 const distDir = join(root, 'dist');
-const version = '1.0.5';
-const zipName = `phc-cpd-directory-${version}-m16.zip`;
+const version = '1.0.9';
+const zipName = `phc-cpd-directory-${version}-m19.zip`;
 const zipPath = join(distDir, zipName);
 
 function assert(condition, message) {
@@ -115,12 +115,24 @@ assert(
   'plugin CSS must include M16 desktop card breakpoint',
 );
 assert(
-  /justify-self:\s*end/.test(pluginCss),
-  'plugin CSS must right-align image-right card media on desktop',
+  /justify-self:\s*center/.test(pluginCss),
+  'plugin CSS must center desktop course images in their column',
 );
 assert(
   /width:\s*320px/.test(pluginCss) && /height:\s*320px/.test(pluginCss),
   'plugin CSS must use 320px desktop course images',
+);
+assert(
+  /background:\s*#fff/.test(pluginCss) &&
+    /border:\s*1px\s+solid\s+var\(--phc-edgewater\)/.test(pluginCss),
+  'plugin CSS must include contained M17 card chrome',
+);
+assert(
+  /phc-directory__card-details/.test(pluginCss) &&
+    /phc-directory__card-cta/.test(pluginCss) &&
+    /background:\s*var\(--phc-edgewater\)/.test(pluginCss) &&
+    !/\.phc-directory__card::before\s*\{/.test(pluginCss),
+  'plugin CSS must include M18 refinements (Edgewater CTA, no accent)',
 );
 
 cleanObsoleteZipArtifacts();

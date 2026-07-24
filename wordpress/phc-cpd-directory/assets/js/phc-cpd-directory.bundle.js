@@ -1769,18 +1769,20 @@
     location: "Ort",
     category: "Kategorie",
     alsoListedUnder: "Auch gelistet unter",
-    cpdHours: "CPD-Stunden",
+    cpdHours: "WB-Stunden*",
+    wbHoursFootnote: "* Weiterbildungsstunden",
     format: "Format",
     scheduleType: "Art des Termins",
     nextStart: "Nächster Termin",
     schedule: "Durchführung",
-    courseCta: "Kursinformationen und Anmeldung",
+    courseCta: "Kursinformationen & Anmeldung",
     /**
+     * Display the course id exactly as supplied by PUBLIC (no prefix).
      * @param {string} id
      * @returns {string}
      */
     courseRef(id) {
-      return `Ref. ${id}`;
+      return id;
     },
     /**
      * @param {string} title
@@ -2053,9 +2055,12 @@
     row.appendChild(description);
     return row;
   }
-  function createMeta(card) {
-    var _a, _b, _c, _d, _e, _f, _g;
-    const meta = el("dl", "phc-directory__card-meta");
+  function createIdentityMeta(card) {
+    var _a, _b, _c;
+    const meta = el(
+      "dl",
+      "phc-directory__card-meta phc-directory__card-meta--identity"
+    );
     let hasMeta = false;
     if (card.location) {
       meta.appendChild(createMetaItem(cpdDirectoryCopy.location, card.location));
@@ -2079,31 +2084,7 @@
       );
       hasMeta = true;
     }
-    if (typeof ((_c = card.classification) == null ? void 0 : _c.cpdHours) === "number") {
-      meta.appendChild(
-        createMetaItem(
-          cpdDirectoryCopy.cpdHours,
-          formatCpdHoursValue(card.classification.cpdHours)
-        )
-      );
-      hasMeta = true;
-    }
-    if (((_d = card.delivery) == null ? void 0 : _d.formats) && card.delivery.formats.length > 0) {
-      meta.appendChild(
-        createMetaItem(
-          cpdDirectoryCopy.format,
-          card.delivery.formats.join(", ")
-        )
-      );
-      hasMeta = true;
-    }
-    if ((_e = card.delivery) == null ? void 0 : _e.scheduleType) {
-      meta.appendChild(
-        createMetaItem(cpdDirectoryCopy.scheduleType, card.delivery.scheduleType)
-      );
-      hasMeta = true;
-    }
-    if ((_f = card.delivery) == null ? void 0 : _f.nextStart) {
+    if ((_c = card.delivery) == null ? void 0 : _c.nextStart) {
       const iso = isoDateAttribute(card.delivery.nextStart);
       const display = formatSwissDateLong(card.delivery.nextStart);
       if (iso) {
@@ -2116,7 +2097,27 @@
       }
       hasMeta = true;
     }
-    if ((_g = card.delivery) == null ? void 0 : _g.scheduleDescription) {
+    return hasMeta ? meta : null;
+  }
+  function createDeliveryColumn(card) {
+    var _a, _b, _c, _d;
+    const column = el("div", "phc-directory__card-delivery");
+    let hasContent = false;
+    const meta = el(
+      "dl",
+      "phc-directory__card-meta phc-directory__card-meta--delivery"
+    );
+    let hasMeta = false;
+    if (((_a = card.delivery) == null ? void 0 : _a.formats) && card.delivery.formats.length > 0) {
+      meta.appendChild(
+        createMetaItem(
+          cpdDirectoryCopy.format,
+          card.delivery.formats.join(", ")
+        )
+      );
+      hasMeta = true;
+    }
+    if ((_b = card.delivery) == null ? void 0 : _b.scheduleDescription) {
       meta.appendChild(
         createMetaItem(
           cpdDirectoryCopy.schedule,
@@ -2125,21 +2126,27 @@
       );
       hasMeta = true;
     }
-    return hasMeta ? meta : null;
-  }
-  function createFooter(card) {
-    const footer = el("div", "phc-directory__card-footer");
-    const actions = el("div", "phc-directory__card-actions");
-    if (card.courseUrl) {
-      const link = el("a", "phc-directory__card-link");
-      link.setAttribute("href", card.courseUrl);
-      link.textContent = cpdDirectoryCopy.courseCta;
-      actions.appendChild(link);
+    if ((_c = card.delivery) == null ? void 0 : _c.scheduleType) {
+      meta.appendChild(
+        createMetaItem(cpdDirectoryCopy.scheduleType, card.delivery.scheduleType)
+      );
+      hasMeta = true;
     }
-    const idRef = el("p", "phc-directory__card-id");
-    idRef.textContent = cpdDirectoryCopy.courseRef(card.id);
-    actions.appendChild(idRef);
-    footer.appendChild(actions);
+    if (hasMeta) {
+      column.appendChild(meta);
+      hasContent = true;
+    }
+    if (typeof ((_d = card.classification) == null ? void 0 : _d.cpdHours) === "number") {
+      const hours = el("div", "phc-directory__card-hours");
+      const term = el("p", "phc-directory__card-hours-label");
+      term.textContent = cpdDirectoryCopy.cpdHours;
+      const value = el("p", "phc-directory__card-hours-value");
+      value.textContent = formatCpdHoursValue(card.classification.cpdHours);
+      hours.appendChild(term);
+      hours.appendChild(value);
+      column.appendChild(hours);
+      hasContent = true;
+    }
     if (card.qrCodeUrl) {
       const qr = el("figure", "phc-directory__card-qr");
       qr.appendChild(
@@ -2149,8 +2156,52 @@
           "phc-directory__card-qr-image"
         )
       );
-      footer.appendChild(qr);
+      column.appendChild(qr);
+      hasContent = true;
     }
+    return hasContent ? column : null;
+  }
+  function createCourseCta(card) {
+    if (!card.courseUrl) {
+      return null;
+    }
+    const link = el("a", "phc-directory__card-cta");
+    link.setAttribute("href", card.courseUrl);
+    link.textContent = cpdDirectoryCopy.courseCta;
+    return link;
+  }
+  function createCardDetails(card) {
+    const identity = createIdentityMeta(card);
+    const delivery = createDeliveryColumn(card);
+    const cta = createCourseCta(card);
+    if (!identity && !delivery && !cta) {
+      return null;
+    }
+    const details = el("div", "phc-directory__card-details");
+    if (identity) {
+      details.appendChild(identity);
+    }
+    if (delivery) {
+      details.appendChild(delivery);
+    }
+    if (cta) {
+      details.appendChild(cta);
+    }
+    return details;
+  }
+  function createFooter(card) {
+    var _a;
+    const footer = el("div", "phc-directory__card-footer");
+    const idRef = el("p", "phc-directory__card-id");
+    idRef.textContent = cpdDirectoryCopy.courseRef(card.id);
+    footer.appendChild(idRef);
+    const footnote = el("p", "phc-directory__card-hours-footnote");
+    if (typeof ((_a = card.classification) == null ? void 0 : _a.cpdHours) === "number") {
+      footnote.textContent = cpdDirectoryCopy.wbHoursFootnote;
+    } else {
+      footnote.textContent = "";
+    }
+    footer.appendChild(footnote);
     return footer;
   }
   function createCpdCourseCard(card) {
@@ -2161,9 +2212,9 @@
     title.textContent = card.title;
     article.appendChild(title);
     article.appendChild(createMediaDescriptionRow(card));
-    const meta = createMeta(card);
-    if (meta) {
-      article.appendChild(meta);
+    const details = createCardDetails(card);
+    if (details) {
+      article.appendChild(details);
     }
     article.appendChild(createFooter(card));
     return article;

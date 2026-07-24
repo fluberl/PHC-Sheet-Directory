@@ -39,13 +39,18 @@ console.log('Running Milestone 16 desktop card composition tests…');
 
   assert.match(
     desktop,
-    /\.phc-directory__card-media\s*\{[^}]*justify-self:\s*start/s,
-    'image-left cards align media to start',
+    /\.phc-directory__card-media\s*\{[^}]*justify-self:\s*center/s,
+    'desktop media centered in column',
   );
   assert.match(
     desktop,
-    /nth-child\(even\)\s+\.phc-directory__card-media\s*\{[^}]*justify-self:\s*end/s,
-    'image-right cards align media to end',
+    /nth-child\(even\)\s+\.phc-directory__card-media\s*\{[^}]*justify-self:\s*center/s,
+    'even cards also center media in column',
+  );
+  assert.doesNotMatch(
+    desktop,
+    /justify-self:\s*start|justify-self:\s*end/,
+    'no edge-anchored media alignment',
   );
   assert.match(
     desktop,

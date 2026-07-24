@@ -152,7 +152,7 @@
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 1.75rem;
+  gap: 2rem;
 }
 
 #phc-cpd-directory .phc-directory__card-item {
@@ -160,10 +160,20 @@
   padding: 0;
 }
 
+/*
+ * Milestone 17/18 — contained PHC cards.
+ * Each offering reads as one lifted object; M16 alternation stays inside.
+ */
 #phc-cpd-directory .phc-directory__card {
+  position: relative;
   margin: 0;
-  padding: 1.15rem 0 1.35rem;
-  border-top: 1px solid #cfcfcf;
+  padding: 1.5rem 1.6rem 1.65rem;
+  background: #fff;
+  border: 1px solid var(--phc-edgewater);
+  border-radius: 0.5rem;
+  box-shadow:
+    0 1px 2px rgba(35, 88, 83, 0.06),
+    0 6px 18px rgba(35, 88, 83, 0.08);
 }
 
 #phc-cpd-directory .phc-directory__card-provider-row {
@@ -291,18 +301,17 @@
 }
 
 /*
- * Milestone 16 — desktop card composition (above the mobile stack breakpoint).
- * Image-left: media flush to the left of its column.
- * Image-right: media flush to the right of its column (justify-self: end).
- * Square photos enlarge to 320px while keeping object-fit: cover.
+ * Milestone 16/19 — desktop card composition (above the mobile stack breakpoint).
+ * Alternation keeps media in left/right columns; M19 centers the image within
+ * its allocated column (no size/aspect/column-width changes).
  */
 @media (min-width: 40.0625rem) {
   #phc-cpd-directory .phc-directory__card-media {
-    justify-self: start;
+    justify-self: center;
   }
 
   #phc-cpd-directory .phc-directory__card-item:nth-child(even) .phc-directory__card-media {
-    justify-self: end;
+    justify-self: center;
   }
 
   #phc-cpd-directory .phc-directory__card-photo,
@@ -339,59 +348,126 @@
   white-space: pre-wrap;
 }
 
-#phc-cpd-directory .phc-directory__card-meta {
-  margin: 0.75rem 0 0;
+#phc-cpd-directory .phc-directory__card-details {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.55rem 1.25rem;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas:
+    'identity delivery'
+    'cta delivery';
+  column-gap: 1.75rem;
+  row-gap: 0.35rem;
+  align-items: start;
+  margin: 0.95rem 0 0;
+}
+
+#phc-cpd-directory .phc-directory__card-meta--identity {
+  grid-area: identity;
+}
+
+#phc-cpd-directory .phc-directory__card-delivery {
+  grid-area: delivery;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+#phc-cpd-directory .phc-directory__card-cta {
+  grid-area: cta;
+  justify-self: end;
+  align-self: start;
+  display: inline-block;
+  margin: 0;
+  padding: 0.7rem 1.15rem;
+  max-width: 100%;
+  box-sizing: border-box;
+  background: var(--phc-edgewater);
+  color: #fff;
+  font-family: var(--phc-ui-font);
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+  text-decoration: none;
+  border: 1px solid var(--phc-edgewater);
+  border-radius: var(--phc-control-radius);
+}
+
+#phc-cpd-directory .phc-directory__card-cta:hover,
+#phc-cpd-directory .phc-directory__card-cta:focus {
+  background: #9fcfc4;
+  border-color: #9fcfc4;
+  color: #fff;
+  text-decoration: none;
+}
+
+#phc-cpd-directory .phc-directory__card-cta:focus {
+  outline: 2px solid var(--phc-tango);
+  outline-offset: 2px;
+}
+
+#phc-cpd-directory .phc-directory__card-meta {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.7rem;
+  max-width: none;
 }
 
 #phc-cpd-directory .phc-directory__card-meta-item {
   margin: 0;
   min-width: 0;
+  display: block;
 }
 
-#phc-cpd-directory .phc-directory__card-meta-term {
+#phc-cpd-directory .phc-directory__card-meta-term,
+#phc-cpd-directory .phc-directory__card-hours-label {
   margin: 0;
-  font-size: 0.8rem;
+  font-family: var(--phc-ui-font);
+  font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.01em;
-  color: #444;
+  color: var(--phc-grey);
 }
 
-#phc-cpd-directory .phc-directory__card-meta-value {
-  margin: 0.1rem 0 0;
+#phc-cpd-directory .phc-directory__card-meta-value,
+#phc-cpd-directory .phc-directory__card-hours-value {
+  margin: 0.15rem 0 0;
+  font-size: 0.98rem;
+  font-weight: 400;
+  line-height: 1.35;
+  color: #1a1a1a;
+}
+
+#phc-cpd-directory .phc-directory__card-hours {
+  margin: 0;
 }
 
 #phc-cpd-directory .phc-directory__card-footer {
-  margin-top: 1rem;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1rem;
+  margin-top: 1.15rem;
+  padding-top: 0.75rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.75rem 1.75rem;
+  align-items: start;
+  border-top: 1px solid rgba(183, 219, 209, 0.7);
 }
 
-#phc-cpd-directory .phc-directory__card-actions {
-  min-width: 0;
-  flex: 1 1 auto;
-}
-
-#phc-cpd-directory .phc-directory__card-link {
-  display: inline-block;
+#phc-cpd-directory .phc-directory__card-id,
+#phc-cpd-directory .phc-directory__card-hours-footnote {
   margin: 0;
-}
-
-#phc-cpd-directory .phc-directory__card-id {
-  margin: 0.45rem 0 0;
+  font-family: var(--phc-ui-font);
   font-size: 0.75rem;
-  line-height: 1.3;
+  line-height: 1.35;
   color: #888;
   font-weight: 400;
+  text-align: left;
 }
 
 #phc-cpd-directory .phc-directory__card-qr {
-  margin: 0;
-  flex: 0 0 auto;
+  margin: 0.35rem 0 0;
 }
 
 #phc-cpd-directory .phc-directory__card-qr-image {
@@ -400,16 +476,6 @@
   height: 5.5rem;
   object-fit: contain;
   background: #fff;
-}
-
-#phc-cpd-directory .phc-directory__card-link {
-  color: #0b3d6e;
-  text-decoration: underline;
-}
-
-#phc-cpd-directory .phc-directory__card-link:focus {
-  outline: 2px solid #1a1a1a;
-  outline-offset: 2px;
 }
 
 #phc-cpd-directory .phc-directory__result-list {
@@ -502,16 +568,30 @@
     grid-row: auto;
   }
 
-  #phc-cpd-directory .phc-directory__card-meta {
+  #phc-cpd-directory .phc-directory__card {
+    padding: 1.25rem 1.15rem 1.35rem;
+  }
+
+  #phc-cpd-directory .phc-directory__card-details {
     grid-template-columns: 1fr;
-    gap: 0.55rem;
+    grid-template-areas:
+      'identity'
+      'delivery'
+      'cta';
+    row-gap: 0.85rem;
+    column-gap: 0;
+  }
+
+  #phc-cpd-directory .phc-directory__card-cta {
+    justify-self: center;
   }
 
   #phc-cpd-directory .phc-directory__card-footer {
-    flex-wrap: wrap;
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
   }
 
   #phc-cpd-directory .phc-directory__card-qr {
-    margin-left: auto;
+    margin-left: 0;
   }
 }

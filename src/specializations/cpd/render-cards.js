@@ -1,6 +1,7 @@
 /**
- * CPD course card rendering — Milestone 14
+ * CPD course card rendering — Milestone 18
  * Builds semantic DOM from immutable card display models only.
+ * Presentation hierarchy: title → description → metadata → CTA → WB metric → footer.
  */
 
 import { cpdDirectoryCopy } from './copy.js';
@@ -157,11 +158,15 @@ function createMediaDescriptionRow(card) {
 }
 
 /**
+ * Identity column: what / where the course belongs.
  * @param {Readonly<CpdCourseCardModel>} card
  * @returns {HTMLElement | null}
  */
-function createMeta(card) {
-  const meta = el('dl', 'phc-directory__card-meta');
+function createIdentityMeta(card) {
+  const meta = el(
+    'dl',
+    'phc-directory__card-meta phc-directory__card-meta--identity',
+  );
   let hasMeta = false;
 
   if (card.location) {
@@ -192,33 +197,6 @@ function createMeta(card) {
     hasMeta = true;
   }
 
-  if (typeof card.classification?.cpdHours === 'number') {
-    meta.appendChild(
-      createMetaItem(
-        cpdDirectoryCopy.cpdHours,
-        formatCpdHoursValue(card.classification.cpdHours),
-      ),
-    );
-    hasMeta = true;
-  }
-
-  if (card.delivery?.formats && card.delivery.formats.length > 0) {
-    meta.appendChild(
-      createMetaItem(
-        cpdDirectoryCopy.format,
-        card.delivery.formats.join(', '),
-      ),
-    );
-    hasMeta = true;
-  }
-
-  if (card.delivery?.scheduleType) {
-    meta.appendChild(
-      createMetaItem(cpdDirectoryCopy.scheduleType, card.delivery.scheduleType),
-    );
-    hasMeta = true;
-  }
-
   if (card.delivery?.nextStart) {
     const iso = isoDateAttribute(card.delivery.nextStart);
     const display = formatSwissDateLong(card.delivery.nextStart);
@@ -233,6 +211,34 @@ function createMeta(card) {
     hasMeta = true;
   }
 
+  return hasMeta ? meta : null;
+}
+
+/**
+ * Delivery column: how the course is delivered, plus WB metric.
+ * @param {Readonly<CpdCourseCardModel>} card
+ * @returns {HTMLElement | null}
+ */
+function createDeliveryColumn(card) {
+  const column = el('div', 'phc-directory__card-delivery');
+  let hasContent = false;
+
+  const meta = el(
+    'dl',
+    'phc-directory__card-meta phc-directory__card-meta--delivery',
+  );
+  let hasMeta = false;
+
+  if (card.delivery?.formats && card.delivery.formats.length > 0) {
+    meta.appendChild(
+      createMetaItem(
+        cpdDirectoryCopy.format,
+        card.delivery.formats.join(', '),
+      ),
+    );
+    hasMeta = true;
+  }
+
   if (card.delivery?.scheduleDescription) {
     meta.appendChild(
       createMetaItem(
@@ -243,28 +249,29 @@ function createMeta(card) {
     hasMeta = true;
   }
 
-  return hasMeta ? meta : null;
-}
-
-/**
- * @param {Readonly<CpdCourseCardModel>} card
- * @returns {HTMLElement}
- */
-function createFooter(card) {
-  const footer = el('div', 'phc-directory__card-footer');
-
-  const actions = el('div', 'phc-directory__card-actions');
-  if (card.courseUrl) {
-    const link = el('a', 'phc-directory__card-link');
-    link.setAttribute('href', card.courseUrl);
-    link.textContent = cpdDirectoryCopy.courseCta;
-    actions.appendChild(link);
+  if (card.delivery?.scheduleType) {
+    meta.appendChild(
+      createMetaItem(cpdDirectoryCopy.scheduleType, card.delivery.scheduleType),
+    );
+    hasMeta = true;
   }
 
-  const idRef = el('p', 'phc-directory__card-id');
-  idRef.textContent = cpdDirectoryCopy.courseRef(card.id);
-  actions.appendChild(idRef);
-  footer.appendChild(actions);
+  if (hasMeta) {
+    column.appendChild(meta);
+    hasContent = true;
+  }
+
+  if (typeof card.classification?.cpdHours === 'number') {
+    const hours = el('div', 'phc-directory__card-hours');
+    const term = el('p', 'phc-directory__card-hours-label');
+    term.textContent = cpdDirectoryCopy.cpdHours;
+    const value = el('p', 'phc-directory__card-hours-value');
+    value.textContent = formatCpdHoursValue(card.classification.cpdHours);
+    hours.appendChild(term);
+    hours.appendChild(value);
+    column.appendChild(hours);
+    hasContent = true;
+  }
 
   if (card.qrCodeUrl) {
     const qr = el('figure', 'phc-directory__card-qr');
@@ -275,8 +282,74 @@ function createFooter(card) {
         'phc-directory__card-qr-image',
       ),
     );
-    footer.appendChild(qr);
+    column.appendChild(qr);
+    hasContent = true;
   }
+
+  return hasContent ? column : null;
+}
+
+/**
+ * @param {Readonly<CpdCourseCardModel>} card
+ * @returns {HTMLElement | null}
+ */
+function createCourseCta(card) {
+  if (!card.courseUrl) {
+    return null;
+  }
+  const link = el('a', 'phc-directory__card-cta');
+  link.setAttribute('href', card.courseUrl);
+  link.textContent = cpdDirectoryCopy.courseCta;
+  return link;
+}
+
+/**
+ * Details grid: identity | delivery, with CTA as a separate cell so desktop
+ * can pin it under the left column and mobile can place it after both groups.
+ * @param {Readonly<CpdCourseCardModel>} card
+ * @returns {HTMLElement | null}
+ */
+function createCardDetails(card) {
+  const identity = createIdentityMeta(card);
+  const delivery = createDeliveryColumn(card);
+  const cta = createCourseCta(card);
+
+  if (!identity && !delivery && !cta) {
+    return null;
+  }
+
+  const details = el('div', 'phc-directory__card-details');
+  if (identity) {
+    details.appendChild(identity);
+  }
+  if (delivery) {
+    details.appendChild(delivery);
+  }
+  if (cta) {
+    details.appendChild(cta);
+  }
+  return details;
+}
+
+/**
+ * Quiet administrative footer: sheet reference + WB footnote when hours exist.
+ * @param {Readonly<CpdCourseCardModel>} card
+ * @returns {HTMLElement}
+ */
+function createFooter(card) {
+  const footer = el('div', 'phc-directory__card-footer');
+
+  const idRef = el('p', 'phc-directory__card-id');
+  idRef.textContent = cpdDirectoryCopy.courseRef(card.id);
+  footer.appendChild(idRef);
+
+  const footnote = el('p', 'phc-directory__card-hours-footnote');
+  if (typeof card.classification?.cpdHours === 'number') {
+    footnote.textContent = cpdDirectoryCopy.wbHoursFootnote;
+  } else {
+    footnote.textContent = '';
+  }
+  footer.appendChild(footnote);
 
   return footer;
 }
@@ -297,9 +370,9 @@ export function createCpdCourseCard(card) {
 
   article.appendChild(createMediaDescriptionRow(card));
 
-  const meta = createMeta(card);
-  if (meta) {
-    article.appendChild(meta);
+  const details = createCardDetails(card);
+  if (details) {
+    article.appendChild(details);
   }
 
   article.appendChild(createFooter(card));

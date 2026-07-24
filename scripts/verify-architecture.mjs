@@ -206,8 +206,8 @@ assert(
   'Card renderer must not present provider type',
 );
 assert(
-  cardsSrc.includes('CPD-Stunden') || cardsSrc.includes('cpdHours'),
-  'Card renderer must use CPD-Stunden wording',
+  cardsSrc.includes('WB-Stunden') || cardsSrc.includes('cpdHours'),
+  'Card renderer must use WB-Stunden wording',
 );
 assert(
   !cardsSrc.includes('Recognition'),
@@ -334,20 +334,36 @@ assert(
   'Editorial results must remain serif-scoped',
 );
 assert(
-  /@media\s*\(\s*min-width:\s*40\.0625rem\s*\)[\s\S]*justify-self:\s*start/.test(
+  /@media\s*\(\s*min-width:\s*40\.0625rem\s*\)[\s\S]*justify-self:\s*center/.test(
     cssSrc,
   ),
-  'Desktop image-left cards must justify media to start',
-);
-assert(
-  /@media\s*\(\s*min-width:\s*40\.0625rem\s*\)[\s\S]*nth-child\(even\)[\s\S]*justify-self:\s*end/.test(
-    cssSrc,
-  ),
-  'Desktop image-right cards must justify media to end',
+  'Desktop course images must be centered in their media column',
 );
 assert(
   /@media\s*\(\s*min-width:\s*40\.0625rem\s*\)[\s\S]*width:\s*320px/.test(cssSrc),
   'Desktop course images must be 320px',
+);
+assert(
+  /\.phc-directory__card\s*\{[^}]*border:\s*1px\s+solid\s+var\(--phc-edgewater\)/s.test(
+    cssSrc,
+  ),
+  'Course cards must use contained Edgewater border',
+);
+assert(
+  /\.phc-directory__card-details\s*\{[^}]*grid-template-areas:[\s\S]*cta delivery/s.test(
+    cssSrc,
+  ),
+  'Card details must place CTA under the identity column on desktop',
+);
+assert(
+  !/\.phc-directory__card::before\s*\{/.test(cssSrc),
+  'Card accent strip must be removed',
+);
+assert(
+  /\.phc-directory__card-cta\s*\{[^}]*background:\s*var\(--phc-edgewater\)/s.test(
+    cssSrc,
+  ),
+  'Cards must use Edgewater CTA button style',
 );
 assert(
   cssSrc.includes('phc-directory__schedule'),

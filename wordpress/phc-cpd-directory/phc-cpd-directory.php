@@ -3,7 +3,7 @@
  * Plugin Name:       PHC CPD Directory
  * Plugin URI:        https://swiss-online-marketing-agentur.ch/
  * Description:       Embeds the PHC Schweiz CPD directory with the shortcode [phc_cpd_directory]. Loads live Google Sheets data via the existing application configuration.
- * Version:           1.0.5
+ * Version:           1.0.9
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Ulf Toelle
@@ -17,7 +17,7 @@ if (!defined('ABSPATH')) {
 }
 
 final class PHC_CPD_Directory_Plugin {
-	const VERSION = '1.0.5';
+	const VERSION = '1.0.9';
 	const SHORTCODE = 'phc_cpd_directory';
 	const STYLE_HANDLE = 'phc-cpd-directory';
 	const SCRIPT_HANDLE = 'phc-cpd-directory';
